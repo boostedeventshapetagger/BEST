@@ -36,14 +36,15 @@ Now the program can be used.
 
 Before training the neural network, the CMS datasets must be converted into a usable form.
 To do this, see the instructions in the ``preprocess`` directory.
-After preprocessing, the files can be used to train a neural network. For this process,
+After preprocessing, the images need to be produced with the ``jetCamera``. Finally,
+the files can be used to train a neural network. For training,
 see the instructions in the ``training`` directory.
 
 ## Instructions for Contributing to this Repository
 
 First, fork this repository and push code to the forked version.
 Please only submit pull requests to the `developer` branch. Before submitting a pull request, 
-please test your code. To test any changes to the edproducer, please do the following:
+please test your code. To test any changes to the preprocess step or jetCamera, please do the following:
 
 ```bash
 cd BEST/preprocess/
@@ -51,6 +52,8 @@ cmsenv
 scram b -j8
 cmsRun test/run_TEST.py
 python BES_variable_testingSuite.py 
+cd ../jetCamera
+python test_boost_jetImageCreator.py
 ```
 
 Then open up the output root file and make sure that the results are as expected. There are no
