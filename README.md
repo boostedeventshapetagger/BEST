@@ -26,7 +26,7 @@ Then, clone this repository and compile the programs as modules for CMSSW.
 
 ```bash
 cd CMSSW_9_4_8/src/
-git clone https://github.com/boostedeventshapetagger/BEST.git
+git clone https://username@gitlab.cern.ch/boostedeventshapetagger/BEST.git
 scram b -j8
 ```
 
@@ -64,7 +64,7 @@ After tests, please rebase to the current developer version:
 
 ```bash
 # if this is your first time submitting a pull request, then do
-git remote add BEST git@github.com:boostedeventshapetagger/BEST.git
+git remote add BEST https://username@gitlab.cern.ch/boostedeventshapetagger/BEST.git
 git checkout -t BEST/developer
 # then every time you want to ensure that the code is up to date
 git fetch -p --all
@@ -74,7 +74,18 @@ git checkout <my feature branch>
 git rebase -i developer
 ```
 
-Finally, submit your a pull request on GitHub to the `developer` branch in `boostedeventshapetagger/BEST`.
+Finally, submit your a merge request on GitLab to the `developer` branch in `boostedeventshapetagger/BEST`.
 There is a short form to fill out for the pull request, this will help the maintainers understand your changes.
 Then, your changes will be reviewed before being added. 
+
+#### To make a new feature branch
+
+Make sure that you are up-to-date with BEST/developer before making a new feature branch
+
+```bash
+git fetch -p --all
+git checkout developer
+git pull
+git checkout -b <new feature branch>
+```
 
