@@ -65,6 +65,7 @@ After tests, please rebase to the current developer version:
 ```bash
 # if this is your first time submitting a pull request, then do
 git remote add BEST https://username@gitlab.cern.ch/boostedeventshapetagger/BEST.git
+git fetch -p --all
 git checkout -t BEST/developer
 # then every time you want to ensure that the code is up to date
 git fetch -p --all
