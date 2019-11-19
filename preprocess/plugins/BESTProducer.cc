@@ -717,7 +717,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             treeVars[ listOfVars[i] ] = -999.99;
         }
         for (unsigned i = 0; i < listOfVecVars.size(); i++){
-            jetVecVars[ listOfVecVars[i] ] = vector<float>();
+            jetVecVars[ listOfVecVars[i] ].clear();
         }
      }
 }
