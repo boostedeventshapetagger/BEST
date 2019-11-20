@@ -69,7 +69,7 @@
 namespace best {
 
     // enumerate possible jet types
-    enum JetType { H, t, W, Z, Q};
+    enum JetType { H, t, W, Z, b, Q};
 
     // enumerate possible jet collections
     enum JetColl{ CHS, PUPPI};
@@ -93,6 +93,7 @@ namespace best {
             {'t', t},
             {'W', W},
             {'Z', Z},
+            {'b', b},
             {'Q', Q}
         };
 
@@ -518,9 +519,9 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     for (vector<pat::Jet>::const_iterator jetBegin = ak8Jets.begin(), jetEnd = ak8Jets.end(), ijet = jetBegin; ijet != jetEnd; ++ijet){
 
         //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from QCD samples -------=======--------------------------
+        // AK8 Jets of interest from QCD and b samples ----------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 4){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && (jetType_ == 4 || jetType_ == 5) ){
 
             // Store Jet Variables
             treeVars["nJets"] = ak8Jets.size();
