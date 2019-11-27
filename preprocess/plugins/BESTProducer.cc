@@ -521,7 +521,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from QCD and b samples ----------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && (jetType_ == 4 || jetType_ == 5) ){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && (jetType_ == 4 || jetType_ == 5) ){
 
             // Store Jet Variables
             treeVars["nJets"] = ak8Jets.size();
@@ -554,7 +554,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from Higgs samples --------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 0){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 0){
             // gen Higgs loop
             for (size_t iHiggs = 0; iHiggs < genHiggs.size(); iHiggs++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -594,7 +594,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from Top samples ----------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 1){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 1){
             // gen Top loop
             for (size_t iTop = 0; iTop < genTop.size(); iTop++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -634,7 +634,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from W samples ------------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 2){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 2){
             // gen W loop
             for (size_t iW = 0; iW < genW.size(); iW++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -674,7 +674,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from Z samples --------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 3){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 3){
             // gen Z loop
             for (size_t iZ = 0; iZ < genZ.size(); iZ++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
