@@ -36,7 +36,8 @@ def appendTreeArray(array):
 #=========================================================================================
 
 # access the TFiles
-fileTest = root.TFile("preprocess_BEST_TEST.root", "READ")
+fileTest = root.TFile("preprocess_BEST_bb.root", "READ")
+#fileTest = root.TFile("preprocess_BEST_TEST.root", "READ")
 
 # access the trees
 tree = fileTest.Get("run/jetTree")
