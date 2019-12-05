@@ -25,7 +25,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.load("RecoBTag.Configuration.RecoBTag_cff")
 
-process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_v4')
+process.GlobalTag = GlobalTag(process.GlobalTag, '94X_mc2017_realistic_v17')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1),
                                         allowUnscheduled = cms.untracked.bool(True))
@@ -48,7 +48,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 # Adjust the jet collection to include tau4
 jetToolbox( process, 'ak8', 'jetsequence', 'out',
     updateCollection = 'slimmedJetsAK8',
-    JETCorrPayload= 'AK8PFchs',
+    JETCorrPayload= 'AK8PFPuppi',
     addNsub = True,
     maxTau = 4
 )
@@ -60,7 +60,7 @@ jetToolbox( process, 'ak8', 'jetsequence', 'out',
 # Apply a preselction
 process.selectedAK8Jets = cms.EDFilter('PATJetSelector',
     src = cms.InputTag('selectedPatJetsAK8PFCHS'),
-    cut = cms.string('pt > 100.0 && abs(eta) < 2.4'),
+    cut = cms.string('pt > 300.0 && abs(eta) < 2.4'),
     filter = cms.bool(True)
 )
 
@@ -86,6 +86,8 @@ process.out = cms.OutputModule("PoolOutputModule",
                                outputCommands = cms.untracked.vstring('drop *',
                                                                       #'keep *_*AK8*_*_*', #'drop *',
                                                                       'keep *_*run*_*_*'
+								      'keep *_fixedGridRhoAll_*_*',
+                                                                      'keep *_run_*_*',
                                                                       #, 'keep *_goodPatJetsCATopTagPF_*_*'
                                                                       #, 'keep recoPFJets_*_*_*'
                                                                       ) 
