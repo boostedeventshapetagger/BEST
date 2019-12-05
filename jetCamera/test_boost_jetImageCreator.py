@@ -5,6 +5,7 @@
 #==================================================================================
 
 # modules
+import sys
 import ROOT as root
 import uproot
 import numpy
@@ -36,7 +37,9 @@ pr.enable()
 #==================================================================================
 
 # access the TFiles and TTrees
-upTree = uproot.open("/uscms_data/d3/bregnery/HHstudies/HHESTIA/CMSSW_9_4_8/src/HHESTIA/preprocess/preprocess_BEST_TEST.root")["run/jetTree"]
+#upTree = uproot.open("/uscms_data/d3/bregnery/HHstudies/HHESTIA/CMSSW_9_4_8/src/HHESTIA/preprocess/preprocess_BEST_TEST.root")["run/jetTree"]
+filename = sys.argv[1]
+upTree = uproot.open(filename)["run/jetTree"]
 
 # make file to store the images and BES variables
 h5f = h5py.File("images/TestBoostedJetImages.h5","w")
@@ -45,8 +48,11 @@ h5f = h5py.File("images/TestBoostedJetImages.h5","w")
 jetDF = {}
 
 # make boosted jet images
-print "Starting with the Higgs Frame"
+#print "Starting with the Higgs Frame"
 img.boostedJetPhotoshoot(upTree, "Higgs", 31, h5f, jetDF)
+img.boostedJetPhotoshoot(upTree, "Top", 31, h5f, jetDF)
+img.boostedJetPhotoshoot(upTree, "W", 31, h5f, jetDF)
+img.boostedJetPhotoshoot(upTree, "Z", 31, h5f, jetDF)
 
 #==================================================================================
 # Store BEST Variables ////////////////////////////////////////////////////////////
