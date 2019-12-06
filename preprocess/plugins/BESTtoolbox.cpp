@@ -104,6 +104,10 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
         // PUPPI weights for puppi jets
         if (jetColl == 1){
             pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(0)->daughter(i);
+            if(!iparticle){
+	      std::cout<<"This is going to crash, you fucked up"<<std::endl;
+              exit(1);
+            }
             jetVecVars["PUPPI_weights"].push_back( iparticle->puppiWeight() );
         }
     }
@@ -115,7 +119,11 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
         jetVecVars["jet_PF_candidate_eta"].push_back(jet->daughter(1)->daughter(i)->eta() );
         // PUPPI weights for puppi jets
         if (jetColl == 1){
-            pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(0)->daughter(i);
+            pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(1)->daughter(i);
+	    if(!iparticle){
+	      std::cout<<"This is going to crash, you fucked up"<<std::endl;
+	      exit(1);
+	    }
             jetVecVars["PUPPI_weights"].push_back( iparticle->puppiWeight() );
         }
     }
