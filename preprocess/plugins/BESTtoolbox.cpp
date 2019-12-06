@@ -149,20 +149,21 @@ void storeJetVariables(std::map<std::string, float> &treeVars, std::vector<pat::
     treeVars["jetAK8_eta"] = jet->eta();
     treeVars["jetAK8_pt"] = jet->pt();
     treeVars["jetAK8_mass"] = jet->mass();
-    treeVars["jetAK8_SoftDropMass"] = jet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass");
 
     // Store Subjettiness info
     if(jetColl == 0){ // CHS jets
         treeVars["jetAK8_Tau4"] = jet->userFloat("NjettinessAK8CHS:tau4");  //important for H->WW jets
-        treeVars["jetAK8_Tau3"] = jet->userFloat("NjettinessAK8CHS:tau3");
-        treeVars["jetAK8_Tau2"] = jet->userFloat("NjettinessAK8CHS:tau2");
-        treeVars["jetAK8_Tau1"] = jet->userFloat("NjettinessAK8CHS:tau1");
+        treeVars["jetAK8_Tau3"] = jet->userFloat("NjettinessAK8:tau3");
+        treeVars["jetAK8_Tau2"] = jet->userFloat("NjettinessAK8:tau2");
+        treeVars["jetAK8_Tau1"] = jet->userFloat("NjettinessAK8:tau1");
+	treeVars["jetAK8_SoftDropMass"] = jet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass");
     }
     if(jetColl == 1){ // PUPPI jets
         treeVars["jetAK8_Tau4"] = jet->userFloat("NjettinessAK8Puppi:tau4");  //important for H->WW jets
         treeVars["jetAK8_Tau3"] = jet->userFloat("NjettinessAK8Puppi:tau3");
         treeVars["jetAK8_Tau2"] = jet->userFloat("NjettinessAK8Puppi:tau2");
         treeVars["jetAK8_Tau1"] = jet->userFloat("NjettinessAK8Puppi:tau1");
+	treeVars["jetAK8_SoftDropMass"] = jet->userFloat("ak8PFJetsPuppiSoftDropMass");
     }
 }
 
