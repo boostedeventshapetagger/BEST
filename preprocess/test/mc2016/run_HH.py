@@ -1,13 +1,4 @@
-#=========================================================================================
-# run_HH.py ------------------------------------------------------------------------------
-#-----------------------------------------------------------------------------------------
-# Authors: Brendan Regnery, Reyer Band ---------------------------------------------------
-#-----------------------------------------------------------------------------------------
-
-#=========================================================================================
-# Load Modules and Settings --------------------------------------------------------------
-#=========================================================================================
-
+import glob
 import FWCore.ParameterSet.Config as cms
 from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
@@ -30,18 +21,23 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_v4')
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1),
                                         allowUnscheduled = cms.untracked.bool(True))
 
+# Get file names with unix pattern expander
+files = glob.glob("/uscms_data/d3/bregnery/HHstudies/MC/HH4W/*.root")
+# Add to the beginning of each filename
+for ifile in range(len(files)):
+    files[ifile] = "file:" + files[ifile]
+
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        # This single file can be used for testing
-        #'root://cmsxrootd.fnal.gov//store/mc/RunIISummer16MiniAODv3/BulkGravTohhTohbbhbb_narrow_M-2000_13TeV-madgraph/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v1/00000/1225B03C-68CF-E811-A093-0CC47A57CB62.root'
+        files
 	)
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-#=========================================================================================
-# Remake the Jet Collections -------------------------------------------------------------
-#=========================================================================================
+#================================================================================
+# Remake the Jet Collections ////////////////////////////////////////////////////
+#================================================================================
 
 # Adjust the jet collection to include tau4
 jetToolbox( process, 'ak8', 'jetsequence', 'out',
@@ -51,9 +47,9 @@ jetToolbox( process, 'ak8', 'jetsequence', 'out',
     maxTau = 4
 )
 
-#=========================================================================================
-# Prepare and run producer ---------------------------------------------------------------
-#=========================================================================================
+#================================================================================
+# Prepare and run producer //////////////////////////////////////////////////////
+#================================================================================
 
 # Apply a preselction
 process.selectedAK8Jets = cms.EDFilter('PATJetSelector',
@@ -72,11 +68,10 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 # Run the producer
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
-        jetType = cms.string('H'),
-        jetColl = cms.string('CHS')
+        isSignal = cms.bool(True)
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string("preprocess_BEST_HH.root") )
+process.TFileService = cms.Service("TFileService", fileName = cms.string("preprocess_TEST.root") )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string("ana_out.root"),
