@@ -74,8 +74,15 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 # Run the producer
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
+        jetColl = cms.string('PUPPI'),                     
         jetType = cms.string('Z'),
-        jetColl = cms.string('CHS')
+	pdgIDforMatch = cms.int32(23),
+	NNtargetX = cms.int32(1),
+	NNtargetY = cms.int32(1),
+	isMC = cms.int32(1),
+        isQCD = cms.int32(0),
+	doMatch = cms.int32(0),
+	usePuppi = cms.int32(1)
 )
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string("preprocess_BEST_ZZ.root") )

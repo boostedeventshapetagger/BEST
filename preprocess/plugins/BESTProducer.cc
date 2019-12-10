@@ -503,7 +503,6 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if(jetType_ == 3){
         for (vector<reco::GenParticle>::const_iterator genBegin = genPart.begin(), genEnd = genPart.end(), ipart = genBegin; ipart != genEnd; ++ipart){
             if(abs(ipart->pdgId() ) == 23){
-	      std::cout<<ipart->status()<<std::endl;
                 genZ.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
             }
         }
