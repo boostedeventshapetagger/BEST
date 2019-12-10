@@ -50,6 +50,8 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
+        jetColl = cms.string('PUPPI'),                     
+        jetType = cms.string('Z'),
 	pdgIDforMatch = cms.int32(23),
 	NNtargetX = cms.int32(1),
 	NNtargetY = cms.int32(1),
