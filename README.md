@@ -1,6 +1,6 @@
 # BEST: Boosted Event Shape Tagger
 
-## Dependencies
+## Dependencies 
 
 This program requires the use of the [Jet Toolbox](https://github.com/cms-jet/JetToolbox/tree/master).
 I have included instructions for downloading this in the Installation section.
