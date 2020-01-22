@@ -1,5 +1,5 @@
 #=========================================================================================
-# run_QCD.py -----------------------------------------------------------------------------
+# run_BB.py ------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------
 # Authors: Brendan Regnery, Reyer Band ---------------------------------------------------
 #-----------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
         # This single file can be used for testing
-        #'root://cmsxrootd-site.fnal.gov//store/mc/RunIIFall17MiniAODv2/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v3/00000/00B3942F-2DBC-E811-8AF2-0CC47AFC3C9C.root'
+        #'root://cmsxrootd-site.fnal.gov//store/mc/RunIISummer16MiniAODv3/RSGravitonToBBbar_kMpl-01_M-1000_TuneCUEP8M1_13TeV-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/110000/221B5B32-8CD2-E811-8620-24BE05CEEB61.root'
 	)
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -72,11 +72,11 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 # Run the producer
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
-        jetType = cms.string('Q'),
+        jetType = cms.string('b'),
         jetColl = cms.string('CHS')
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string("preprocess_BEST_QCD.root") )
+process.TFileService = cms.Service("TFileService", fileName = cms.string("preprocess_BEST_bb.root") )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string("ana_out.root"),

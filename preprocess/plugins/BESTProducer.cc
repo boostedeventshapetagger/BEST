@@ -69,7 +69,7 @@
 namespace best {
 
     // enumerate possible jet types
-    enum JetType { H, t, W, Z, Q};
+    enum JetType { H, t, W, Z, b, Q};
 
     // enumerate possible jet collections
     enum JetColl{ CHS, PUPPI};
@@ -93,6 +93,7 @@ namespace best {
             {'t', t},
             {'W', W},
             {'Z', Z},
+            {'b', b},
             {'Q', Q}
         };
 
@@ -507,6 +508,16 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         }
     }
 
+    // Bottom
+    std::vector<TLorentzVector> genBottom;
+    if(jetType_ == 4){
+        for (vector<reco::GenParticle>::const_iterator genBegin = genPart.begin(), genEnd = genPart.end(), ipart = genBegin; ipart != genEnd; ++ipart){
+            if(abs(ipart->pdgId() ) == 5){
+                genBottom.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
+            }
+        }
+    }
+
 
 
     //------------------------------------------------------------------------------
@@ -518,9 +529,9 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     for (vector<pat::Jet>::const_iterator jetBegin = ak8Jets.begin(), jetEnd = ak8Jets.end(), ijet = jetBegin; ijet != jetEnd; ++ijet){
 
         //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from QCD samples -------=======--------------------------
+        // AK8 Jets of interest from QCD samples ----------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 4){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 5){
 
             // Store Jet Variables
             treeVars["nJets"] = ak8Jets.size();
@@ -553,7 +564,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from Higgs samples --------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 0){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 0){
             // gen Higgs loop
             for (size_t iHiggs = 0; iHiggs < genHiggs.size(); iHiggs++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -586,6 +597,9 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                     // Fill the jet entry tree
                     jetTree->Fill();
+
+                    // Prevent double storing jets
+                    break;
                 }
              }
         }
@@ -593,7 +607,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from Top samples ----------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 1){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 1){
             // gen Top loop
             for (size_t iTop = 0; iTop < genTop.size(); iTop++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -626,6 +640,9 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                     // Fill the jet entry tree
                     jetTree->Fill();
+
+                    // Prevent double storing jets
+                    break;
                 }
              }
         }
@@ -633,7 +650,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from W samples ------------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 2){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 2){
             // gen W loop
             for (size_t iW = 0; iW < genW.size(); iW++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -666,6 +683,9 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                     // Fill the jet entry tree
                     jetTree->Fill();
+
+                    // Prevent double storing jets
+                    break;
                 }
              }
          }
@@ -673,7 +693,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         //-------------------------------------------------------------------------------
         // AK8 Jets of interest from Z samples --------------------------------------
         //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 3){
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 3){
             // gen Z loop
             for (size_t iZ = 0; iZ < genZ.size(); iZ++){
                 TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
@@ -706,6 +726,52 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                     // Fill the jet entry tree
                     jetTree->Fill();
+
+                    // Prevent double storing jets
+                    break;
+                }
+             }
+        }
+
+        //-------------------------------------------------------------------------------
+        // AK8 Jets of interest from Bottom samples -------------------------------------
+        //-------------------------------------------------------------------------------
+        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass") > 40 && jetType_ == 4){
+            // gen Top loop
+            for (size_t iBottom = 0; iBottom < genBottom.size(); iBottom++){
+                TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
+
+                // match Jet to Top
+                if(jet.DeltaR(genBottom[iBottom]) < 0.1){
+
+                    // Store Jet Variables
+                    treeVars["nJets"] = ak8Jets.size();
+                    storeJetVariables(treeVars, ijet, jetColl_);
+
+                    // Secondary Vertex Variables
+                    storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
+
+                    // Get all of the Jet's daughters
+                    vector<reco::Candidate * > daughtersOfJet;
+                    getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
+
+                    // Higgs Rest Frame Variables
+                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
+
+                    // Top Rest Frame Variables
+                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
+
+                    // W Rest Frame Variables
+                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
+
+                    // Z Rest Frame Variables
+                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
+
+                    // Fill the jet entry tree
+                    jetTree->Fill();
+
+                    // Prevent double storing jets
+                    break;
                 }
              }
         }

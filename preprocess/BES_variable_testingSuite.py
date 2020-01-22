@@ -36,7 +36,10 @@ def appendTreeArray(array):
 #=========================================================================================
 
 # access the TFiles
-fileTest = root.TFile("preprocess_BEST_TEST.root", "READ")
+fileTest = root.TFile("preprocess_BEST_ZZ.root", "READ")
+#fileTest = root.TFile("preprocess_BEST_QCD.root", "READ")
+#fileTest = root.TFile("preprocess_BEST_bb.root", "READ")
+#fileTest = root.TFile("preprocess_BEST_TEST.root", "READ")
 
 # access the trees
 tree = fileTest.Get("run/jetTree")
@@ -89,7 +92,7 @@ for ijet in range(0, len(jetArray)):
     #-------------------------------------------------------------------------------------
     
     for iMass in indMass :
-        if "SV" not in treeVars[iMass] and jetArray[ijet][iMass] < -0.1 :  # choose negative 0.1 because there seems to be precision errors with smaller values
+        if "SV" not in treeVars[iMass] and jetArray[ijet][iMass] < -1.0 :  # choose negative 0.1 because there seems to be precision errors with smaller values
             print "ERROR: ", treeVars[iMass], " is negative: ", jetArray[ijet][iMass]
             print " 'Awful things happen to wizards who meddle with time, Harry'"
             exit()
