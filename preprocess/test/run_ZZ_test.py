@@ -1,5 +1,5 @@
 #=========================================================================================
-# run_ZZ.py ------------------------------------------------------------------------------
+# run_ZZ_test.py -------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------
 # Authors: Brendan Regnery, Reyer Band ---------------------------------------------------
 #-----------------------------------------------------------------------------------------
@@ -27,19 +27,19 @@ process.load("RecoBTag.Configuration.RecoBTag_cff")
 
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_mcRun2_asymptotic_v4')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1),
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000),
                                         allowUnscheduled = cms.untracked.bool(True))
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
         # This single file can be used for testing
-        #'root://cmsxrootd.fnal.gov//store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
-        '/store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
+        'root://cmsxrootd.fnal.gov//store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
+        #'/store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
 
 	)
 )
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 500
 
 #=========================================================================================
 # Remake the Jet Collections -------------------------------------------------------------

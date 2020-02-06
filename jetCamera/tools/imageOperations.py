@@ -25,8 +25,8 @@ def boostedJetPhotoshoot(upTree, frame, nbins, h5f, jetDF):
 
     nx = nbins # number of image bins in phi
     ny = nbins # number of image bins in theta
-    jetDF['jet_images'] = np.zeros((len(upTree.array(["jetAK8_pt"]) ), nx, ny, 1) ) # made for tensorFlow
-
+    jetDF['jet_images'] = np.zeros((len(upTree.pandas.df(["jetAK8_pt"]) ), nx, ny, 1) ) # made for tensorFlow
+    
     # Loop over jets using the proper rest frame
     jetCount = 0
     for ijet in upTree.iterate([frame+"Frame_PF_candidate*", "jetAK8_pt", "jetAK8_phi", 
@@ -131,7 +131,7 @@ def boostedRotations(candArray):
         if icand.E() > leadE : 
             print "ERROR: Energy sorting was done incorrectly!"
             print " 'I stand by what I said ... you would have done well in Slytherin'"
-            exit()     
+            exit(1)     
 
         # rotate so that the leading jet is in the xy plane 
         icand.RotateZ(-rotPhi)
@@ -166,7 +166,7 @@ def boostedRotations(candArray):
         if icand.E() > subleadE and icand.E() < leadE : 
             if abs( (icand.Phi() - leadLV.Phi() ) ) > 1.0 : 
                 print "Error: Subleading candidate was improperly identified!"  
-                exit()
+                exit(1)
   
         # rotatate about x with psi to get subleading candidate to x-y plane      
         icand.RotateX(subPsi - np.pi/2)
@@ -177,7 +177,7 @@ def boostedRotations(candArray):
         if icand.M() < -2.0: 
             print "ERROR: Negative Candidate Mass: ", icand.M()
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
  
     # Reflect if bottomSum > topSum and/or leftSum > rightSum
     leftSum, rightSum = 0, 0
