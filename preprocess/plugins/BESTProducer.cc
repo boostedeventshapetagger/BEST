@@ -69,7 +69,7 @@
 namespace best {
 
     // enumerate possible jet types
-    enum JetType { H, t, W, Z, Q};
+  enum JetType { Q, H, t, W, Z, b};
 
     // enumerate possible jet collections
     enum JetColl{ CHS, PUPPI};
@@ -89,11 +89,12 @@ namespace best {
     // Create a mapping from the input jetType to enum
     JetType jetTypeFromString(const std::string& label) {
         static const JetTypeStringToEnum jetTypeStringToEnumMap[] = {
-            {'H', H},
+            {'Q', Q},
+	    {'H', H},
             {'t', t},
             {'W', W},
             {'Z', Z},
-            {'Q', Q}
+            {'b', b}
         };
 
         JetType value = (JetType)-1;
@@ -112,6 +113,7 @@ namespace best {
 
         return value;
     }
+
 
     // Create a mapping from the input jetColl to enum
     JetColl jetCollFromString(const std::string& label) {
@@ -242,9 +244,9 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     listOfVecVars.push_back("SV_Ndof");
 
     // Deep Jet b Discriminants
-    //listOfVars.push_back("bDisc");
-    //listOfVars.push_back("bDisc1");
-    //listOfVars.push_back("bDisc2");
+    listOfVars.push_back("bDisc");
+    listOfVars.push_back("bDisc1");
+    listOfVars.push_back("bDisc2");
 
     // nsubjettiness
     listOfVars.push_back("jetAK8_Tau4");
@@ -314,6 +316,42 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     listOfVars.push_back("subjet23_mass_Z");
     listOfVars.push_back("subjet13_mass_Z");
     listOfVars.push_back("subjet1234_mass_Z");
+    //Subjet CosTheta and delta CosTheta
+    listOfVars.push_back("subjet12_CosTheta_Higgs");
+    listOfVars.push_back("subjet23_CosTheta_Higgs");
+    listOfVars.push_back("subjet13_CosTheta_Higgs");
+    listOfVars.push_back("subjet1234_CosTheta_Higgs");
+
+    listOfVars.push_back("subjet12_CosTheta_Top");
+    listOfVars.push_back("subjet23_CosTheta_Top");
+    listOfVars.push_back("subjet13_CosTheta_Top");
+    listOfVars.push_back("subjet1234_CosTheta_Top");
+
+    listOfVars.push_back("subjet12_CosTheta_W");
+    listOfVars.push_back("subjet23_CosTheta_W");
+    listOfVars.push_back("subjet13_CosTheta_W");
+    listOfVars.push_back("subjet1234_CosTheta_W");
+
+    listOfVars.push_back("subjet12_CosTheta_Z");
+    listOfVars.push_back("subjet23_CosTheta_Z");
+    listOfVars.push_back("subjet13_CosTheta_Z");
+    listOfVars.push_back("subjet1234_CosTheta_Z");
+
+    listOfVars.push_back("subjet12_DeltaCosTheta_Higgs");
+    listOfVars.push_back("subjet13_DeltaCosTheta_Higgs");
+    listOfVars.push_back("subjet23_DeltaCosTheta_Higgs");
+
+    listOfVars.push_back("subjet12_DeltaCosTheta_Top");
+    listOfVars.push_back("subjet13_DeltaCosTheta_Top");
+    listOfVars.push_back("subjet23_DeltaCosTheta_Top");
+
+    listOfVars.push_back("subjet12_DeltaCosTheta_W");
+    listOfVars.push_back("subjet13_DeltaCosTheta_W");
+    listOfVars.push_back("subjet23_DeltaCosTheta_W");
+
+    listOfVars.push_back("subjet12_DeltaCosTheta_Z");
+    listOfVars.push_back("subjet13_DeltaCosTheta_Z");
+    listOfVars.push_back("subjet23_DeltaCosTheta_Z");
 
     // Jet Asymmetry
     listOfVars.push_back("asymmetry_Higgs");
@@ -464,50 +502,38 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // matching
     //------------------------------------------------------------------------------
     // Please note that the Jet Type has been enumerated:
-    // H -> 0, t -> 1, W -> 2, Z -> 3, Q -> 4
+    // QCD -> 0, H -> 1, t -> 2, W -> 3, Z -> 4, b -> 5
     //------------------------------------------------------------------------------
-
-    // Higgs
-    std::vector<TLorentzVector> genHiggs;
-    if(jetType_ == 0){
+    int pdgID = -99;
+    switch(jetType_){
+    case 1:
+      pdgID = 25;
+      break;
+    case 2:
+      pdgID = 6;
+      break;
+    case 3:
+      pdgID =  24;
+      break;
+    case 4:
+      pdgID = 23;
+      break;
+    case 5:
+      pdgID = 5;
+      break;
+    default:
+      pdgID = -99;
+      break;
+    }
+    // Store heavy particle for jet matching
+    std::vector<TLorentzVector> genParticleToMatch;
+    if(jetType_ != 0){
         for (vector<reco::GenParticle>::const_iterator genBegin = genPart.begin(), genEnd = genPart.end(), ipart = genBegin; ipart != genEnd; ++ipart){
-            if(abs(ipart->pdgId() ) == 25){
-                genHiggs.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
+            if(abs(ipart->pdgId() ) == pdgID){
+                genParticleToMatch.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
             }
         }
     }
-
-    // Top
-    std::vector<TLorentzVector> genTop;
-    if(jetType_ == 1){
-        for (vector<reco::GenParticle>::const_iterator genBegin = genPart.begin(), genEnd = genPart.end(), ipart = genBegin; ipart != genEnd; ++ipart){
-            if(abs(ipart->pdgId() ) == 6){
-                genTop.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
-            }
-        }
-    }
-
-    // W
-    std::vector<TLorentzVector> genW;
-    if(jetType_ == 2){
-        for (vector<reco::GenParticle>::const_iterator genBegin = genPart.begin(), genEnd = genPart.end(), ipart = genBegin; ipart != genEnd; ++ipart){
-            if(abs(ipart->pdgId() ) == 24){
-                genW.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
-            }
-        }
-    }
-
-    // Z
-    std::vector<TLorentzVector> genZ;
-    if(jetType_ == 3){
-        for (vector<reco::GenParticle>::const_iterator genBegin = genPart.begin(), genEnd = genPart.end(), ipart = genBegin; ipart != genEnd; ++ipart){
-            if(abs(ipart->pdgId() ) == 23){
-                genZ.push_back( TLorentzVector(ipart->px(), ipart->py(), ipart->pz(), ipart->energy() ) );
-            }
-        }
-    }
-
-
 
     //------------------------------------------------------------------------------
     // AK8 Jet Loop ----------------------------------------------------------------
@@ -516,210 +542,55 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     //------------------------------------------------------------------------------
 
     for (vector<pat::Jet>::const_iterator jetBegin = ak8Jets.begin(), jetEnd = ak8Jets.end(), ijet = jetBegin; ijet != jetEnd; ++ijet){
+      if(ijet->subjets("SoftDropPuppi").size() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
+	// gen particle loop
+	for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
+	  TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
 
-        //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from QCD samples -------=======--------------------------
-        //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10 && jetType_ == 4){
+	  // match Jet to correct genParticle, unless QCD sample
+	  if(jet.DeltaR(genParticleToMatch[iGenParticle]) > 0.1 && jetType_ != 0){ 
+	    continue;
+	  }
 
-            // Store Jet Variables
-            treeVars["nJets"] = ak8Jets.size();
-            storeJetVariables(treeVars, ijet, jetColl_);
+	  // Store Jet Variables
+	  treeVars["nJets"] = ak8Jets.size();
+	  storeJetVariables(treeVars, ijet, jetColl_);
 
-            // Secondary Vertex Variables
-            TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-            storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
+	  // Secondary Vertex Variables
+	  storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
 
-            // Get all of the Jet's daughters
-            vector<reco::Candidate * > daughtersOfJet;
-            getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
+	  // Get all of the Jet's daughters
+	  vector<reco::Candidate * > daughtersOfJet;
+	  getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
 
-            // Higgs Rest Frame Variables
-            storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
+	  // Higgs Rest Frame Variables
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
 
-            // Top Rest Frame Variables
-            storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
+	  // Top Rest Frame Variables
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
 
-            // W Rest Frame Variables
-            storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
+	  // W Rest Frame Variables
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
 
-            // Z Rest Frame Variables
-            storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
+	  // Z Rest Frame Variables
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
 
-            // Fill the jet entry tree
-            jetTree->Fill();
-        }
+	  // Fill the jet entry tree
+	  jetTree->Fill();
+	}
+      }
+    
 
-        //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from Higgs samples --------------------------------------
-        //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10 && jetType_ == 0){
-            // gen Higgs loop
-            for (size_t iHiggs = 0; iHiggs < genHiggs.size(); iHiggs++){
-                TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-
-                // match Jet to Higgs
-                if(jet.DeltaR(genHiggs[iHiggs]) < 0.1){
-
-                    // Store Jet Variables
-                    treeVars["nJets"] = ak8Jets.size();
-                    storeJetVariables(treeVars, ijet, jetColl_);
-
-                    // Secondary Vertex Variables
-                    storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
-
-                    // Get all of the Jet's daughters
-                    vector<reco::Candidate * > daughtersOfJet;
-                    getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
-
-                    // Higgs Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
-
-                    // Top Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
-
-                    // W Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
-
-                    // Z Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
-
-                    // Fill the jet entry tree
-                    jetTree->Fill();
-                }
-             }
-        }
-
-        //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from Top samples ----------------------------------------
-        //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10 && jetType_ == 1){
-            // gen Top loop
-            for (size_t iTop = 0; iTop < genTop.size(); iTop++){
-                TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-
-                // match Jet to Top
-                if(jet.DeltaR(genTop[iTop]) < 0.1){
-
-                    // Store Jet Variables
-                    treeVars["nJets"] = ak8Jets.size();
-                    storeJetVariables(treeVars, ijet, jetColl_);
-
-                    // Secondary Vertex Variables
-                    storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
-
-                    // Get all of the Jet's daughters
-                    vector<reco::Candidate * > daughtersOfJet;
-                    getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
-
-                    // Higgs Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
-
-                    // Top Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
-
-                    // W Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
-
-                    // Z Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
-
-                    // Fill the jet entry tree
-                    jetTree->Fill();
-                }
-             }
-        }
-
-        //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from W samples ------------------------------------------
-        //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10 && jetType_ == 2){
-            // gen W loop
-            for (size_t iW = 0; iW < genW.size(); iW++){
-                TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-
-                // match Jet to W
-                if(jet.DeltaR(genW[iW]) < 0.1){
-
-                    // Store Jet Variables
-                    treeVars["nJets"] = ak8Jets.size();
-                    storeJetVariables(treeVars, ijet, jetColl_);
-
-                    // Secondary Vertex Variables
-                    storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
-
-                    // Get all of the Jet's daughters
-                    vector<reco::Candidate * > daughtersOfJet;
-                    getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
-
-                    // Higgs Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
-
-                    // Top Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
-
-                    // W Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
-
-                    // Z Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
-
-                    // Fill the jet entry tree
-                    jetTree->Fill();
-                }
-             }
-         }
-
-        //-------------------------------------------------------------------------------
-        // AK8 Jets of interest from Z samples --------------------------------------
-        //-------------------------------------------------------------------------------
-        if(ijet->numberOfDaughters() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10 && jetType_ == 3){
-            // gen Z loop
-            for (size_t iZ = 0; iZ < genZ.size(); iZ++){
-                TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-
-                // match Jet to Z
-                if(jet.DeltaR(genZ[iZ]) < 0.1){
-
-                    // Store Jet Variables
-                    treeVars["nJets"] = ak8Jets.size();
-                    storeJetVariables(treeVars, ijet, jetColl_);
-
-                    // Secondary Vertex Variables
-                    storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
-
-                    // Get all of the Jet's daughters
-                    vector<reco::Candidate * > daughtersOfJet;
-                    getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
-
-                    // Higgs Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
-
-                    // Top Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
-
-                    // W Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
-
-                    // Z Rest Frame Variables
-                    storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
-
-                    // Fill the jet entry tree
-                    jetTree->Fill();
-                }
-             }
-        }
-
-        //-------------------------------------------------------------------------------
-        // Clear and Reset all tree variables -------------------------------------------
-        //-------------------------------------------------------------------------------
-        for (unsigned i = 0; i < listOfVars.size(); i++){
-            treeVars[ listOfVars[i] ] = -999.99;
-        }
-        for (unsigned i = 0; i < listOfVecVars.size(); i++){
-            jetVecVars[ listOfVecVars[i] ].clear();
-        }
-     }
+      //-------------------------------------------------------------------------------
+      // Clear and Reset all tree variables -------------------------------------------
+      //-------------------------------------------------------------------------------
+      for (unsigned i = 0; i < listOfVars.size(); i++){
+	treeVars[ listOfVars[i] ] = -999.99;
+      }
+      for (unsigned i = 0; i < listOfVecVars.size(); i++){
+	jetVecVars[ listOfVecVars[i] ].clear();
+      }
+    }
 }
 
 

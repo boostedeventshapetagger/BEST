@@ -19,24 +19,23 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        '/store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-3000_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/70000/D4906130-023F-E911-8840-002590D9D8B2.root'
-#        '/store/mc/RunIISummer16MiniAODv3/RadionToZZ_width0p1_M-4000_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/270000/22B95FF7-5A3C-E911-87E5-6CC2173DA930.root'
-#        '/store/mc/RunIIFall17MiniAODv2/QCD_Pt_300to470_TuneCP5_13TeV_pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/10000/702C798E-5742-E811-B83B-0025905C95F8.root'
-#        '/store/mc/RunIISummer16MiniAODv3/RadionToZZ_width0p1_M-800_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/22D31D21-5AD2-E811-AF27-0242AC130002.root'
-#        '/store/mc/RunIIFall17MiniAODv2/TprimeTprime_M-1200_TuneCP5_13TeV-madgraph-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/10000/44B2C08A-636B-E811-8957-90B11C443319.root',
+        '/store/mc/RunIIFall17MiniAODv2/RadionToZZ_narrow_M-5000_TuneCP5_13TeV-madgraph/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/240000/88C32EBF-A689-E911-BE4D-A4BF0112BCD4.root'
         )
                             )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 jetToolbox( process, 'ak8', 'jetsequence', 'out',
     updateCollection = 'slimmedJetsAK8',
     JETCorrPayload= 'AK8PFPuppi',
+    PUMethod='Puppi',
+    runOnMC=True,    
+#    JETCorrPayload= 'AK8PFchs',
     addNsub = True,
     maxTau = 4
 )
 
 
 process.selectedAK8Jets = cms.EDFilter('PATJetSelector',
-    src = cms.InputTag('selectedPatJetsAK8PFCHS'),
+    src = cms.InputTag('selectedPatJetsAK8PFPuppi'),
     cut = cms.string('pt > 300.0 && abs(eta) < 2.4'),
     filter = cms.bool(True)
 )
@@ -51,17 +50,17 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
         jetColl = cms.string('PUPPI'),                     
-        jetType = cms.string('Z'),
-	pdgIDforMatch = cms.int32(23),
-	NNtargetX = cms.int32(1),
-	NNtargetY = cms.int32(1),
-	isMC = cms.int32(1),
-        isQCD = cms.int32(0),
-	doMatch = cms.int32(0),
-	usePuppi = cms.int32(1)
+        jetType = cms.string('Z')
+#	pdgIDforMatch = cms.int32(23),
+#	NNtargetX = cms.int32(1),
+#	NNtargetY = cms.int32(1),
+#	isMC = cms.int32(1),
+#        isQCD = cms.int32(0),
+#	doMatch = cms.int32(0),
+#	usePuppi = cms.int32(0)
 
 )
-process.TFileService = cms.Service("TFileService", fileName = cms.string("histo_BESTprod.root") )
+process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string("ana_out.root"),

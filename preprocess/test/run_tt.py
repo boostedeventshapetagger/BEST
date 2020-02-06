@@ -19,7 +19,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        '/store/mc/RunIIFall17MiniAODv2/QCD_Pt-15to7000_TuneCP5_Flat2017_13TeV_pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/70000/AA231798-AA43-E811-BCDC-0CC47A7C35A8.root'
+        '/store/mc/RunIIFall17MiniAODv2/ZprimeToTT_M2000_W20_TuneCP2_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/90000/F04A14F5-8D29-E911-9199-0CC47A4C8E1E.root'
         )
                             )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -50,7 +50,7 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
         jetColl = cms.string('PUPPI'),                     
-        jetType = cms.string('Q')
+        jetType = cms.string('t')
 #	pdgIDforMatch = cms.int32(23),
 #	NNtargetX = cms.int32(1),
 #	NNtargetY = cms.int32(1),
