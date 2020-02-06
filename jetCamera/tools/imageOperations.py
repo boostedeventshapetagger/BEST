@@ -25,7 +25,8 @@ def boostedJetPhotoshoot(upTree, frame, nbins, h5f, jetDF):
 
     nx = nbins # number of image bins in phi
     ny = nbins # number of image bins in theta
-    jetDF['jet_images'] = np.zeros((len(upTree.array(["jetAK8_pt"]) ), nx, ny, 1) ) # made for tensorFlow
+    #jetDF['jet_images'] = np.zeros((len(upTree.array(["jetAK8_pt"]) ), nx, ny, 1) ) # made for tensorFlow
+    jetDF['jet_images'] = np.zeros((431, nx, ny, 1) ) # made for tensorFlow
 
     # Loop over jets using the proper rest frame
     jetCount = 0
