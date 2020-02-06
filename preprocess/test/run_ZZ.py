@@ -34,10 +34,8 @@ process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
         # This single file can be used for testing
-        #'root://cmsxrootd.fnal.gov//store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
-        '/store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
-
-	)
+        '/store/mc/RunIIFall17MiniAODv2/RadionToZZ_narrow_M-5000_TuneCP5_13TeV-madgraph/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/240000/88C32EBF-A689-E911-BE4D-A4BF0112BCD4.root'
+        )
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
@@ -49,6 +47,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 jetToolbox( process, 'ak8', 'jetsequence', 'out',
     updateCollection = 'slimmedJetsAK8',
     JETCorrPayload= 'AK8PFPuppi',
+    PUMethod='Puppi',
+    runOnMC=True,    
+#    JETCorrPayload= 'AK8PFchs',
     addNsub = True,
     maxTau = 4
 )
@@ -59,7 +60,7 @@ jetToolbox( process, 'ak8', 'jetsequence', 'out',
 
 # Apply a preselction
 process.selectedAK8Jets = cms.EDFilter('PATJetSelector',
-    src = cms.InputTag('selectedPatJetsAK8PFCHS'),
+    src = cms.InputTag('selectedPatJetsAK8PFPuppi'),
     cut = cms.string('pt > 300.0 && abs(eta) < 2.4'),
     filter = cms.bool(True)
 )
@@ -75,17 +76,9 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('selectedAK8Jets'),
         jetColl = cms.string('PUPPI'),                     
-        jetType = cms.string('Z'),
-	pdgIDforMatch = cms.int32(23),
-	NNtargetX = cms.int32(1),
-	NNtargetY = cms.int32(1),
-	isMC = cms.int32(1),
-        isQCD = cms.int32(0),
-	doMatch = cms.int32(0),
-	usePuppi = cms.int32(1)
+        jetType = cms.string('Z')
 )
-
-process.TFileService = cms.Service("TFileService", fileName = cms.string("preprocess_BEST_ZZ.root") )
+process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string("ana_out.root"),
