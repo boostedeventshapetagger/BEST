@@ -39,7 +39,6 @@ class GenerateBatch(object):
       for flavor in self.classes:
          temp_file = h5py.File(self.weightfilelist[flavor], "r")
          weight_dict[flavor] = temp_file[flavor][()]
-#         print type(temp_file), type(weight_dict), type(weight_dict[flavor])
          temp_file.close()
       print 'Loaded All Weights Into Memory'
       return weight_dict
@@ -111,14 +110,6 @@ class GenerateBatch(object):
             print 'Are training/validation disjoint?', set_valid.isdisjoint(set_train)
       return keep_train_list, keep_valid_list
    
-
-#   def gaussSmear(self, batch, center = 0.01, width = 0.002):
-#      for i, key in enumerate(self.inputs):
-#         if 'BES' not in key:
-#            for x, column in enumerate(batch[i]):
-#               for y, entry in enumerate(column):
-#                  batch[i][x][y] = entry+numpy.random.normal(center, width)
-#            batch[i] = ImageSmear(batch[i])
 
    def ImageSmear(self, image, smearWidth = 0.5, npoints = 20):
       #Create empty image same size as input image, then populate with blur of original image
@@ -221,7 +212,6 @@ class GenerateBatch(object):
          print len(temp_image_train_list), len(temp_image_train_list[0]), len(temp_image_train_list[0][0])
 
       return_train_batch = [temp_image_train_list[0], temp_image_train_list[1], temp_image_train_list[2], temp_image_train_list[3], best_vars_train_list]
-#      return_train_batch = [temp_image_train_list, best_vars_train_list]
 
       if (self.smearImage):
          for i, key in enumerate(self.inputs):
@@ -230,73 +220,6 @@ class GenerateBatch(object):
                   return_train_batch[i][m] = self.gaussSmear(return_train_batch[i][m])
 
       return return_train_batch
-
-#    def generate_valid_batch(self, file_name, weight_file):
-#       particle = weight_file[:-15]
-#       validation_frac = self.validation_frac
-      
-#       keep_valid_list = []
-
-#       for index in self.valid_indices[particle]:
-#          rand_num = numpy.random.uniform(0, 1)
-#          weight = self.weights[particle][index]
-#          if weight > rand_num:
-#             keep_valid_list.append(index)
-#             pass
-#          pass
-
-#       numpy.random.shuffle(keep_valid_list)
-
-#       #Slice these to the correct length, should be batch_size/num_classes                                                                                                                                           
-#       if len(keep_valid_list) > (self.validation_frac * self.batch_size/self.num_classes):
-# #         keep_valid_list = keep_valid_list[0:int(self.validation_frac * (self.batch_size/self.num_classes))]
-#          keep_valid_list = keep_valid_list[0:int((self.batch_size/self.num_classes))]                  
-#          pass
-#       if self.debug_info:
-#          print "Number of duplicated validation events between batches: ", len(set(keep_valid_list).intersection(set(self.last_valid_keep[particle])))
-#          print set(keep_valid_list).intersection(set(self.last_valid_keep[particle]))
-#          self.last_valid_keep[particle] = keep_valid_list
-
-#       return_valid_batch = []
-#       temp_image_valid_list = []
-#       best_vars_valid_list = []
-
-#       if 'QCD' in particle: particle_index = 1
-#       if 'H' in particle: particle_index = 2
-#       if 'T' in particle: particle_index = 3
-#       if 'W' in particle: particle_index = 4
-#       if 'Z' in particle: particle_index = 5
-#       if 'B' in particle: particle_index = 6
-
-
-#       for key in self.inputs:
-#          if 'BES' not in key:
-#             temp_image_valid_list.append(numpy.zeros((len(keep_valid_list), 31, 31, 1)))
-# #            temp_image_valid_list.append(numpy.full((len(keep_valid_list), 31, 31, 1), particle_index))
-#             pass
-#          pass #Should result in 4 entries in the list                                                                                                                                       
-
-#       for i, key in enumerate(self.inputs):
-#          if 'BES' not in key:
-#             for n, index in enumerate(keep_valid_list):
-#                temp_image_valid_list[i][n] = (self.data[particle+'_'+key])[index]               
-#                pass
-#             pass
-#          if 'BES' in key:
-#             for index in keep_valid_list:
-#                best_vars_valid_list.append(self.data[particle+'_'+key][index])
-# #               best_vars_valid_list.append(numpy.zeros(44))
-#                pass
-#       return_valid_batch = [temp_image_valid_list[0], temp_image_valid_list[1], best_vars_valid_list]
-#       if (self.smearImage):
-#          for i, key in enumerate(self.inputs):
-#             if 'BES' not in key:
-#                for m in xrange(0, len(return_valid_batch[i])):
-# #                  return_valid_batch[i][m] = self.ImageSmear(return_valid_batch[i][m])
-#                   return_valid_batch[i][m] = self.gaussSmear(return_valid_batch[i][m])
-#       return return_valid_batch
-
-
    def train_looping(self, batch_type):
       #This uses generate_batch on each input file, returns the training tuples (data, truth)
       for index, particle in enumerate(self.classes):
@@ -311,8 +234,6 @@ class GenerateBatch(object):
          if index == 0:
             big_train_batch = train_temp
             big_train_truth = numpy.full(len(train_temp[0]), particle_index)
-#            if self.debug_info:
-#            print index, particle, len(big_train_batch), len(big_train_batch[0]), len(big_train_batch[1]),  len(big_train_batch[2]),  len(big_train_batch[3]),  len(big_train_batch[4])
          else:
             big_train_truth = numpy.concatenate([big_train_truth, numpy.full(len(train_temp[0]), particle_index)])
             for i in range(0,len(train_temp)):
@@ -336,33 +257,6 @@ class GenerateBatch(object):
 
 
       return big_train_batch, keras.utils.to_categorical(big_train_truth, num_classes = self.num_classes)
-
-   # def valid_looping(self):
-   #    for index, particle in enumerate(self.classes):
-   #       if 'QCD' in particle: particle_index = 1
-   #       elif 'H' in particle: particle_index = 2
-   #       elif 'T' in particle: particle_index = 3
-   #       elif 'W' in particle: particle_index = 4
-   #       elif 'Z' in particle: particle_index = 5
-   #       elif 'B' in particle: particle_index = 6
-   #       valid_temp = self.generate_train_batch(particle, 'valid')
-   #       if index == 0:
-   #          big_valid_batch = valid_temp
-   #          big_valid_truth = numpy.full(len(valid_temp[0]), particle_index)
-   #          pass
-   #       else:
-   #          big_valid_truth = numpy.concatenate([big_valid_truth, numpy.full(len(valid_temp[0]), particle_index)])
-   #          for i in range(0,len(valid_temp)):
-   #             big_valid_batch[i] = numpy.concatenate([big_valid_batch[i], valid_temp[i]])
-
-
-   #    empty_valid_batch = [None for i in range(0, len(big_valid_batch))]
-   #    big_valid_batch[0], empty_valid_batch[0], big_valid_batch[1], empty_valid_batch[1], big_valid_batch[2], empty_valid_batch[2], big_valid_truth, empty_valid_truth = train_test_split(big_valid_batch[0], big_valid_batch[1], big_valid_batch[2], big_valid_truth, test_size = 0.0)
-
-
-   #    return big_valid_batch, keras.utils.to_categorical(big_valid_truth, num_classes = self.num_classes)
-#      return shuffle_tuple
-#      return big_valid_batch, big_valid_truth
 
    def generator_train(self):
       while True:
