@@ -60,7 +60,7 @@ jetToolbox( process, 'ak8', 'jetsequence', 'out',
 # Apply a preselction
 process.selectedAK8Jets = cms.EDFilter('PATJetSelector',
     src = cms.InputTag('selectedPatJetsAK8PFCHS'),
-    cut = cms.string('pt > 100.0 && abs(eta) < 2.4'),
+    cut = cms.string('pt > 300.0 && abs(eta) < 2.4'),
     filter = cms.bool(True)
 )
 
