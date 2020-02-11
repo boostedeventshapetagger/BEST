@@ -70,34 +70,6 @@ def plot_confusion_matrix(cm, classes,
    plt.tight_layout() #make all the axis labels not get cutoff
 
 #==================================================================================
-# Get Branch Names ////////////////////////////////////////////////////////////////
-#----------------------------------------------------------------------------------
-# tree is a TTree /////////////////////////////////////////////////////////////////
-#----------------------------------------------------------------------------------
-
-def getBranchNames(tree ):
-
-   # empty array to store names
-   treeVars = []
-
-   # loop over branches
-   for branch in tree.GetListOfBranches():
-      name = branch.GetName()
-      if 'nJets' in name:
-         continue
-      if 'SoftDropMass' in name:
-         continue
-      if 'mass' in name:
-         continue
-      if 'gen' in name:
-         continue
-      if 'pt' in name:
-         continue
-      treeVars.append(name)
-
-   return treeVars
-
-#==================================================================================
 # Get BEST Branch Names ///////////////////////////////////////////////////////////
 #----------------------------------------------------------------------------------
 # tree is a TTree /////////////////////////////////////////////////////////////////
@@ -143,7 +115,7 @@ def getBestBranchNames(tree ):
          continue
       if 'candidate' in name:
          continue
-      if 'subjet' in name and not 'mass_H' in name:
+      if '_mass' in name and not 'Higgs'in name:
          continue
       if 'isotropy' in name and not 'isotropy_H' in name:
          continue
@@ -170,7 +142,7 @@ def GetBESVars(jet, treeVars):
          for lim, val in enumerate(obj):
             if lim > 109: break #Should stop by Ylm 10,-10
             bes_vars.append(val)
-
+            print var_name
       else:
          bes_vars.append(getattr(jet,var_name))
    return numpy.array(bes_vars)
