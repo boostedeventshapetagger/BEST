@@ -50,7 +50,8 @@ filename = sys.argv[1]
 
 # access the TFiles
 #Storing data in /eos/, accessing through url
-fileCandidates = root.TFile.Open('root://cmsxrootd.fnal.gov//store/user/rband/UpdatedBESTSamples/'+filename)
+#fileCandidates = root.TFile.Open('root://cmsxrootd.fnal.gov//store/user/rband/UpdatedBESTSamples/'+filename)
+fileCandidates = root.TFile.Open(filename)
 
 filename = filename.replace('.root','')
 # access the trees
@@ -74,16 +75,16 @@ ET = []
 Mass = []
 
 for index, jet in enumerate(treeCandidates):
-   #Selection criteria here
+   #Selection criteria hereB
    if index%1000 == 1: print "Imaging jet", index
-   if (jet.jetAK8_pt > 500  and jet.jetAK8_SoftDropMass> 10):
+   if (jet.jetAK8_pt > 500  and jet.jetAK8_SoftDropMass> 10 and jet.nSubjets_Higgs > 3): #nSubjets cut vetoes only ~0.1% of events, but many variables poorly defined if nSubjets < 4
       H_image.append(img.prepareBoostedImages(jet, 'H', 31, smearImage, smearWidth, smearPoints))
       T_image.append(img.prepareBoostedImages(jet, 'T', 31, smearImage, smearWidth, smearPoints))
       W_image.append(img.prepareBoostedImages(jet, 'W', 31, smearImage, smearWidth, smearPoints))
       Z_image.append(img.prepareBoostedImages(jet, 'Z', 31, smearImage, smearWidth, smearPoints))
       BES_vars.append(tools.GetBESVars(jet, bestVars))
-      ET.append(jet.AK8_pt)
-      Mass.append(jet.AK8_Mass)
+      ET.append(jet.jetAK8_pt)
+      Mass.append(jet.jetAK8_mass)
       num_pass += 1
       if num_pass%1000 == 1: print "Jet,", num_pass
 

@@ -253,6 +253,8 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     listOfVars.push_back("jetAK8_Tau3");
     listOfVars.push_back("jetAK8_Tau2");
     listOfVars.push_back("jetAK8_Tau1");
+    listOfVars.push_back("jetAK8_Tau32");
+    listOfVars.push_back("jetAK8_Tau21");
 
     // Fox Wolfram Moments
     listOfVars.push_back("FoxWolfH1_Higgs");
@@ -297,6 +299,11 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     listOfVars.push_back("thrust_Z");
 
     // Jet Mass
+    listOfVars.push_back("nSubjets_Higgs");
+    listOfVars.push_back("nSubjets_Top");
+    listOfVars.push_back("nSubjets_W");
+    listOfVars.push_back("nSubjets_Z");
+
     listOfVars.push_back("subjet12_mass_Higgs");
     listOfVars.push_back("subjet23_mass_Higgs");
     listOfVars.push_back("subjet13_mass_Higgs");

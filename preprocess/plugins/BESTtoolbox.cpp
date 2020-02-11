@@ -324,9 +324,10 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     fastjet::ClusterSequence cs(FJparticles, jet_def);
     //    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_pt(cs.inclusive_jets(20.0));
     //Changed to 0.0 here, the 20.0 cuts on pT relative to a meaningless axis
-    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_pt(cs.inclusive_jets(0.0));
+    //    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_pt(cs.inclusive_jets(0.0));
+    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_E(cs.inclusive_jets(0.0));
 
-    // Store recluster jet info
+    // Store reclustered jet info
     for(unsigned int i = 0; i < jetsFJ.size(); i++){
         jetVecVars[frame+"Frame_subjet_px"].push_back(jetsFJ[i].px());
         jetVecVars[frame+"Frame_subjet_py"].push_back(jetsFJ[i].py());
@@ -371,7 +372,7 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     treeVars["subjet13_CosTheta_"+frame]   = subjet13LV.CosTheta();
     treeVars["subjet23_CosTheta_"+frame]   = subjet23LV.CosTheta();
     treeVars["subjet1234_CosTheta_"+frame] = subjet1234LV.CosTheta();
-
+    treeVars["nSubjets_"+frame] = jetsFJ.size();
 }
 
 //========================================================================================
