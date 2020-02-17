@@ -549,15 +549,21 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     //------------------------------------------------------------------------------
 
     for (vector<pat::Jet>::const_iterator jetBegin = ak8Jets.begin(), jetEnd = ak8Jets.end(), ijet = jetBegin; ijet != jetEnd; ++ijet){
-      if(ijet->subjets("SoftDropPuppi").size() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
-	// gen particle loop
-	for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
-	  TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
+      bool GenMatching = false;
+      TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
 
-	  // match Jet to correct genParticle, unless QCD sample
-	  if(jet.DeltaR(genParticleToMatch[iGenParticle]) > 0.1 && jetType_ != 0){
-	    continue;
+      if(ijet->subjets("SoftDropPuppi").size() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
+
+	// gen particle loop, only relevant for non-QCD jets
+	if (jetType_ !=0){
+	  for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
+	    // Check if jet matches any saved genParticle
+	    if(jet.DeltaR(genParticleToMatch[iGenParticle]) > 0.1){
+	      GenMatching = true;
+	    }
 	  }
+	}
+	if (GenMatching || (jetType_ == 0)){
 
 	  // Store Jet Variables
 	  treeVars["nJets"] = ak8Jets.size();
@@ -586,7 +592,6 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  jetTree->Fill();
 	}
       }
-
 
       //-------------------------------------------------------------------------------
       // Clear and Reset all tree variables -------------------------------------------
