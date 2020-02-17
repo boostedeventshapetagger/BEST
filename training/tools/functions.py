@@ -99,9 +99,9 @@ def getBestBranchNames(tree ):
          continue
       if 'npv' in name:
          continue
-      if 'eta' in name:
+      if 'jetAK8_eta' in name:
          continue
-      if 'phi' in name:
+      if 'jetAK8_phi' in name:
          continue
       if name == 'isB':
          continue
@@ -126,6 +126,10 @@ def getBestBranchNames(tree ):
       if 'SH_' in name:
          continue
       if 'SV' in name:
+         continue
+      if 'subjet_p' in name:
+         continue
+      if 'subjet_energy' in name:
          continue
       treeVars.append(name)
    print len(treeVars), "variables used in BES will be:", treeVars
