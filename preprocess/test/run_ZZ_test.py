@@ -85,7 +85,7 @@ process.out = cms.OutputModule("PoolOutputModule",
                                #SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
                                outputCommands = cms.untracked.vstring('drop *',
                                                                       #'keep *_*AK8*_*_*', #'drop *',
-                                                                      'keep *_*run*_*_*'
+                                                                      'keep *_*run*_*_*',
 								      'keep *_fixedGridRhoAll_*_*',
                                                                       #, 'keep *_goodPatJetsCATopTagPF_*_*'
                                                                       #, 'keep recoPFJets_*_*_*'
