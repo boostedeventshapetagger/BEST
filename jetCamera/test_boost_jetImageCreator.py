@@ -5,6 +5,7 @@
 #==================================================================================
 
 # modules
+import sys
 import ROOT as root
 import uproot
 import numpy
@@ -45,7 +46,7 @@ h5f = h5py.File("images/TestBoostedJetImages.h5","w")
 jetDF = {}
 
 # make boosted jet images
-print "Starting with the Higgs Frame"
+#print "Starting with the Higgs Frame"
 img.boostedJetPhotoshoot(upTree, "Higgs", 31, h5f, jetDF)
 
 #==================================================================================

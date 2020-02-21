@@ -104,6 +104,10 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
         // PUPPI weights for puppi jets
         if (jetColl == 1){
             pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(0)->daughter(i);
+            if(!iparticle){
+	      std::cout<<"This is going to exit"<<std::endl;
+              exit(1);
+            }
             jetVecVars["PUPPI_weights"].push_back( iparticle->puppiWeight() );
         }
     }
@@ -115,7 +119,11 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
         jetVecVars["jet_PF_candidate_eta"].push_back(jet->daughter(1)->daughter(i)->eta() );
         // PUPPI weights for puppi jets
         if (jetColl == 1){
-            pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(0)->daughter(i);
+            pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(1)->daughter(i);
+	    if(!iparticle){
+	      std::cout<<"This is going to exit"<<std::endl;
+	      exit(1);
+	    }
             jetVecVars["PUPPI_weights"].push_back( iparticle->puppiWeight() );
         }
     }
@@ -127,7 +135,11 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
         jetVecVars["jet_PF_candidate_eta"].push_back(jet->daughter(i)->eta() );
         // PUPPI weights for puppi jets
         if (jetColl == 1){
-            pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(0)->daughter(i);
+            pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(i);
+	    if(!iparticle){
+	      std::cout<<"This is going to exit"<<std::endl;
+              exit(1);
+            }
             jetVecVars["PUPPI_weights"].push_back( iparticle->puppiWeight() );
         }
     }
@@ -149,7 +161,7 @@ void storeJetVariables(std::map<std::string, float> &treeVars, std::vector<pat::
     treeVars["jetAK8_eta"] = jet->eta();
     treeVars["jetAK8_pt"] = jet->pt();
     treeVars["jetAK8_mass"] = jet->mass();
-    treeVars["jetAK8_SoftDropMass"] = jet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass");
+    treeVars["bDisc"] = jet->bDiscriminator("pfDeepCSVJetTags:probb") + jet->bDiscriminator("pfDeepCSVJetTags:probbb");
 
     // Store Subjettiness info
     if(jetColl == 0){ // CHS jets
@@ -157,12 +169,34 @@ void storeJetVariables(std::map<std::string, float> &treeVars, std::vector<pat::
         treeVars["jetAK8_Tau3"] = jet->userFloat("NjettinessAK8CHS:tau3");
         treeVars["jetAK8_Tau2"] = jet->userFloat("NjettinessAK8CHS:tau2");
         treeVars["jetAK8_Tau1"] = jet->userFloat("NjettinessAK8CHS:tau1");
+	treeVars["jetAK8_Tau21"] = jet->userFloat("NjettinessAK8CHS:tau2") / jet->userFloat("NjettinessAK8CHS:tau1");
+        treeVars["jetAK8_Tau32"] = jet->userFloat("NjettinessAK8CHS:tau3") / jet->userFloat("NjettinessAK8CHS:tau2");
+	treeVars["jetAK8_SoftDropMass"] = jet->userFloat("ak8PFJetsCHSValueMap:ak8PFJetsCHSSoftDropMass");
     }
     if(jetColl == 1){ // PUPPI jets
         treeVars["jetAK8_Tau4"] = jet->userFloat("NjettinessAK8Puppi:tau4");  //important for H->WW jets
         treeVars["jetAK8_Tau3"] = jet->userFloat("NjettinessAK8Puppi:tau3");
         treeVars["jetAK8_Tau2"] = jet->userFloat("NjettinessAK8Puppi:tau2");
         treeVars["jetAK8_Tau1"] = jet->userFloat("NjettinessAK8Puppi:tau1");
+	treeVars["jetAK8_Tau21"] = jet->userFloat("NjettinessAK8Puppi:tau2") / jet->userFloat("NjettinessAK8Puppi:tau1");
+        treeVars["jetAK8_Tau32"] = jet->userFloat("NjettinessAK8Puppi:tau3") / jet->userFloat("NjettinessAK8Puppi:tau2");
+	treeVars["jetAK8_SoftDropMass"] = jet->userFloat("ak8PFJetsPuppiSoftDropMass");
+	auto subjets = jet->subjets("SoftDropPuppi");
+	if (subjets.size() < 2){
+	  std::cout << "This will exit, not enough subjets" << std::endl;
+	  exit(1);
+	}
+	if (!subjets[0]){
+	  std::cout << "This will exit, invalid subjet 0" << std::endl;
+          exit(1);
+        }
+        if (!subjets[1]){
+	  std::cout << "This will exit, invalid subjet 1" << std::endl;
+          exit(1);
+	}
+	treeVars["bDisc1"] = subjets[0]->bDiscriminator("pfDeepCSVJetTags:probb") + subjets[0]->bDiscriminator("pfDeepCSVJetTags:probbb");
+        treeVars["bDisc2"] = subjets[1]->bDiscriminator("pfDeepCSVJetTags:probb") + subjets[1]->bDiscriminator("pfDeepCSVJetTags:probbb");
+
     }
 }
 
@@ -209,8 +243,8 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
                             std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
                             std::string frame, float mass){
 
-    using namespace std;
-    using namespace fastjet;
+  //    using namespace std;
+  //    using namespace fastjet;
 
     // get 4 vector for heavy object rest frame
     typedef reco::Candidate::PolarLorentzVector fourv;
@@ -221,7 +255,7 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     std::vector<TLorentzVector> particles;
     std::vector<math::XYZVector> particles2;
     std::vector<reco::LeafCandidate> particles3;
-    vector<fastjet::PseudoJet> FJparticles;
+    std::vector<fastjet::PseudoJet> FJparticles;
 
     // 4 vectors to be filled with subjet additions
     TLorentzVector subjet12LV(0.,0.,0.,0.);
@@ -234,7 +268,7 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
 
     // Boost to object rest frame
     for(unsigned int i = 0; i < daughtersOfJet.size(); i++){
-        // Do not include low mass subjets
+        // Do not include low pT particles
         if (daughtersOfJet[i]->pt() < 0.5) continue;
 
         // Create 4 vector to boost to Higgs frame
@@ -247,17 +281,20 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         jetVecVars[frame+"Frame_PF_candidate_pz"].push_back(thisParticleLV.Pz() );
         jetVecVars[frame+"Frame_PF_candidate_energy"].push_back(thisParticleLV.E() );
 
+
         // Now that PF candidates are stored, make the boost axis the Z-axis
         // Important for BES variables
         pboost( thisJetLV.Vect(), thisParticleLV.Vect(), thisParticleLV);
+
         particles.push_back( thisParticleLV );
         particles2.push_back( math::XYZVector( thisParticleLV.X(), thisParticleLV.Y(), thisParticleLV.Z() ));
         particles3.push_back( reco::LeafCandidate(+1, reco::Candidate::LorentzVector( thisParticleLV.X(), thisParticleLV.Y(),
                                                                                         thisParticleLV.Z(), thisParticleLV.T() ) ));
-        FJparticles.push_back( PseudoJet( thisParticleLV.X(), thisParticleLV.Y(), thisParticleLV.Z(), thisParticleLV.T() ) );
+        FJparticles.push_back( fastjet::PseudoJet( thisParticleLV.X(), thisParticleLV.Y(), thisParticleLV.Z(), thisParticleLV.T() ) );
 
         // Sum rest frame momenta for asymmetry calculation, but only for pt > 10
-        if (daughtersOfJet[i]->pt() < 10) continue;
+	//Why?????
+	//        if (daughtersOfJet[i]->pt() < 10) continue;
         sumPz += thisParticleLV.Pz();
         sumP += abs( thisParticleLV.P() );
     }
@@ -283,11 +320,14 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     treeVars["asymmetry_"+frame] = asymmetry;
 
     // Recluster the jets in the heavy object rest frame
-    JetDefinition jet_def(antikt_algorithm, 0.4);
-    ClusterSequence cs(FJparticles, jet_def);
-    vector<PseudoJet> jetsFJ = sorted_by_pt(cs.inclusive_jets(20.0));
+    fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, 0.4);
+    fastjet::ClusterSequence cs(FJparticles, jet_def);
+    //    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_pt(cs.inclusive_jets(20.0));
+    //Changed to 0.0 here, the 20.0 cuts on pT relative to a meaningless axis
+    //    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_pt(cs.inclusive_jets(0.0));
+    std::vector<fastjet::PseudoJet> jetsFJ = sorted_by_E(cs.inclusive_jets(0.0));
 
-    // Store recluster jet info
+    // Store reclustered jet info
     for(unsigned int i = 0; i < jetsFJ.size(); i++){
         jetVecVars[frame+"Frame_subjet_px"].push_back(jetsFJ[i].px());
         jetVecVars[frame+"Frame_subjet_py"].push_back(jetsFJ[i].py());
@@ -305,12 +345,15 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
         case 1:
+	  treeVars["subjet12_DeltaCosTheta_"+frame]   = subjet12LV.CosTheta() - iSubjetLV.CosTheta();
             subjet12LV   = subjet12LV   + iSubjetLV;
             subjet23LV   = subjet23LV   + iSubjetLV;
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
         case 2:
+	  treeVars["subjet13_DeltaCosTheta_"+frame]   = subjet13LV.CosTheta() - iSubjetLV.CosTheta();
             subjet13LV   = subjet13LV   + iSubjetLV;
+	    treeVars["subjet23_DeltaCosTheta_"+frame]   = subjet23LV.CosTheta() - iSubjetLV.CosTheta();
             subjet23LV   = subjet23LV   + iSubjetLV;
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
@@ -325,7 +368,11 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     treeVars["subjet13_mass_"+frame]   = subjet13LV.M();
     treeVars["subjet23_mass_"+frame]   = subjet23LV.M();
     treeVars["subjet1234_mass_"+frame] = subjet1234LV.M();
-
+    treeVars["subjet12_CosTheta_"+frame]   = subjet12LV.CosTheta();
+    treeVars["subjet13_CosTheta_"+frame]   = subjet13LV.CosTheta();
+    treeVars["subjet23_CosTheta_"+frame]   = subjet23LV.CosTheta();
+    treeVars["subjet1234_CosTheta_"+frame] = subjet1234LV.CosTheta();
+    treeVars["nSubjets_"+frame] = jetsFJ.size();
 }
 
 //========================================================================================
