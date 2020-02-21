@@ -34,8 +34,8 @@ process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
         # This single file can be used for testing
+        #'root://cmsxrootd.fnal.gov//store/mc/RunIIFall17MiniAODv2/RadionToZZ_narrow_M-5000_TuneCP5_13TeV-madgraph/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/240000/88C32EBF-A689-E911-BE4D-A4BF0112BCD4.root'
         'root://cmsxrootd.fnal.gov//store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
-        #'/store/mc/RunIISummer16MiniAODv3/RSGravToZZ_width0p1_M-1200_TuneCUETP8M1_13TeV-madgraph-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/60000/08079DE6-78D2-E811-AE1B-E0071B7AC700.root'
 
 	)
 )
@@ -49,6 +49,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 500
 jetToolbox( process, 'ak8', 'jetsequence', 'out',
     updateCollection = 'slimmedJetsAK8',
     JETCorrPayload= 'AK8PFPuppi',
+    PUMethod='Puppi',
     addNsub = True,
     maxTau = 4
 )
