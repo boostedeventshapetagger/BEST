@@ -558,7 +558,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if (jetType_ !=0){
 	  for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
 	    // Check if jet matches any saved genParticle
-	    if(jet.DeltaR(genParticleToMatch[iGenParticle]) > 0.1){ 
+	    if(jet.DeltaR(genParticleToMatch[iGenParticle]) < 0.1){ 
 	      GenMatching = true; 
 	    }
 	  }

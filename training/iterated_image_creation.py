@@ -59,7 +59,6 @@ treeCandidates = fileCandidates.Get("run/jetTree")
 print treeCandidates, type(treeCandidates)
 
 #Declare the file to be written to
-#[:-5] strips .root from the filename
 h5f = h5py.File("images/"+filename+".h5","w")
 bestVars = tools.getBestBranchNames(treeCandidates)
 
@@ -77,7 +76,7 @@ numPass = 0
 for index, jet in enumerate(treeCandidates):
    #Selection criteria here
    if index%1000 == 1: print "Imaging jet", index
-   if (jet.jetAK8_pt > 500  and jet.jetAK8_SoftDropMass> 10 and jet.nSubjets_Higgs > 3): #nSubjets cut vetoes only ~0.1% of events, but many variables poorly defined if nSubjets < 4
+   if (jet.jetAK8_pt > 500  and jet.jetAK8_pt < 1800 and jet.jetAK8_SoftDropMass> 10 and jet.nSubjets_Higgs > 3): #nSubjets cut vetoes only ~0.1% of events, but many variables poorly defined if nSubjets < 4
       H_image.append(img.prepareBoostedImages(jet, 'H', 31, smearImage, smearWidth, smearPoints))
       T_image.append(img.prepareBoostedImages(jet, 'T', 31, smearImage, smearWidth, smearPoints))
       W_image.append(img.prepareBoostedImages(jet, 'W', 31, smearImage, smearWidth, smearPoints))

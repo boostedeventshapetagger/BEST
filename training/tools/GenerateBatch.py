@@ -11,14 +11,14 @@ from collections import OrderedDict
 class GenerateBatch(object):
    def __init__(self, batch_size = 1200, validation_frac = 0.1, smearImage = False, debug_info = False, debug_plots = False):
       #File list should be a dict mapping the class to the file
-      filelist = {'QCD' : 'images/FullQCD.h5', 'H' : 'images/FullH.h5', 'T' : 'images/FullT.h5', 'W' : 'images/FullW.h5', 'Z' : 'images/FullZ.h5', 'B' : 'images/FullB.h5'}
-      weightfilelist = {'QCD' : 'QCDEventWeights.h5', 'H' : 'HEventWeights.h5', 'T' : 'TEventWeights.h5', 'W' : 'WEventWeights.h5', 'Z' : 'ZEventWeights.h5', 'B' : 'BEventWeights.h5'}
+      filelist = {'QCD' : 'images/QCDTransformed.h5', 'H' : 'images/HTransformed.h5', 't' : 'images/tTransformed.h5', 'W' : 'images/WTransformed.h5', 'Z' : 'images/ZTransformed.h5', 'B' : 'images/BTransformed.h5'}
+      weightfilelist = {'QCD' : 'PtWeights/QCDEventWeights.h5', 'H' : 'PtWeights/HEventWeights.h5', 't' : 'PtWeights/tEventWeights.h5', 'W' : 'PtWeights/WEventWeights.h5', 'Z' : 'PtWeights/ZEventWeights.h5', 'B' : 'PtWeights/BEventWeights.h5'}
       self.filelist = filelist
       self.weightfilelist = weightfilelist
       self.batch_size = batch_size
       self.inputs = ['H', 'T', 'W', 'Z', 'BES']
 #      self.inputs = ['H', 'T', 'BES']
-      self.classes = ['QCD', 'H', 'T', 'W', 'Z', 'B']
+      self.classes = ['QCD', 'H', 't', 'W', 'Z', 'B']
       self.num_classes = 6
       self.validation_frac = validation_frac
       self.debug_info = debug_info
@@ -32,7 +32,9 @@ class GenerateBatch(object):
       self.last_valid_keep = {'QCD' : [], 'H' : [], 'T' : [], 'W' : [], 'Z' : [], 'B' : []}
       #Split the datasets in training and validation 
       self.train_indices, self.valid_indices =  self.split_train_valid()
-      print 'Initialized Generator'
+      self.train_length = sum(len(x) for x in self.train_indices.values())
+      self.valid_length = sum(len(x) for x in self.valid_indices.values())
+      print ('Initialized Generator')
 
    def OpenWeightFiles(self):
       weight_dict = {}
@@ -40,7 +42,7 @@ class GenerateBatch(object):
          temp_file = h5py.File(self.weightfilelist[flavor], "r")
          weight_dict[flavor] = temp_file[flavor][()]
          temp_file.close()
-      print 'Loaded All Weights Into Memory'
+      print ('Loaded All Weights Into Memory')
       return weight_dict
 
    def OpenDataFiles(self):
@@ -50,22 +52,28 @@ class GenerateBatch(object):
          for label in self.inputs:
             data_dict[flavor+'_'+label] = temp_file[flavor+'_'+label][()]
          temp_file.close()
-      print 'Loaded All Data Into Memory'
+      print ('Loaded All Data Into Memory')
       if self.debug_plots:
-         print len(data_dict['QCD_BES']), len(data_dict['H_BES']), len(data_dict['T_BES']), len(data_dict['W_BES']), len(data_dict['Z_BES']), len(data_dict['B_BES'])
+         print (len(data_dict['QCD_BES']), len(data_dict['H_BES']), len(data_dict['t_BES']), len(data_dict['W_BES']), len(data_dict['Z_BES']), len(data_dict['B_BES']))
+         print (len(data_dict['QCD_BES']), len(data_dict['QCD_BES'][0]))
+         self.besInput_Labels =  ['jetAK8_pt', 'jetAK8_mass', 'jetAK8_SoftDropMass', 'nSecondaryVertices', 'bDisc', 'bDisc1', 'bDisc2', 'jetAK8_Tau4', 'jetAK8_Tau3', 'jetAK8_Tau2', 'jetAK8_Tau1', 'jetAK8_Tau32', 'jetAK8_Tau21', 'FoxWolfH1_Higgs', 'FoxWolfH2_Higgs', 'FoxWolfH3_Higgs', 'FoxWolfH4_Higgs', 'FoxWolfH1_Top', 'FoxWolfH2_Top', 'FoxWolfH3_Top', 'FoxWolfH4_Top', 'FoxWolfH1_W', 'FoxWolfH2_W', 'FoxWolfH3_W', 'FoxWolfH4_W', 'FoxWolfH1_Z', 'FoxWolfH2_Z', 'FoxWolfH3_Z', 'FoxWolfH4_Z', 'isotropy_Higgs', 'sphericity_Higgs', 'aplanarity_Higgs', 'thrust_Higgs', 'sphericity_Top', 'aplanarity_Top', 'thrust_Top', 'sphericity_W', 'aplanarity_W', 'thrust_W', 'sphericity_Z', 'aplanarity_Z', 'thrust_Z', 'nSubjets_Higgs', 'nSubjets_Top', 'nSubjets_W', 'nSubjets_Z', 'subjet12_mass_Higgs', 'subjet23_mass_Higgs', 'subjet13_mass_Higgs', 'subjet1234_mass_Higgs', 'subjet12_mass_Top', 'subjet23_mass_Top', 'subjet13_mass_Top', 'subjet1234_mass_Top', 'subjet12_mass_W', 'subjet23_mass_W', 'subjet13_mass_W', 'subjet1234_mass_W', 'subjet12_mass_Z', 'subjet23_mass_Z', 'subjet13_mass_Z', 'subjet1234_mass_Z', 'subjet12_CosTheta_Higgs', 'subjet23_CosTheta_Higgs', 'subjet13_CosTheta_Higgs', 'subjet1234_CosTheta_Higgs', 'subjet12_CosTheta_Top', 'subjet23_CosTheta_Top', 'subjet13_CosTheta_Top', 'subjet1234_CosTheta_Top', 'subjet12_CosTheta_W', 'subjet23_CosTheta_W', 'subjet13_CosTheta_W', 'subjet1234_CosTheta_W', 'subjet12_CosTheta_Z', 'subjet23_CosTheta_Z', 'subjet13_CosTheta_Z', 'subjet1234_CosTheta_Z', 'subjet12_DeltaCosTheta_Higgs', 'subjet13_DeltaCosTheta_Higgs', 'subjet23_DeltaCosTheta_Higgs', 'subjet12_DeltaCosTheta_Top', 'subjet13_DeltaCosTheta_Top', 'subjet23_DeltaCosTheta_Top', 'subjet12_DeltaCosTheta_W', 'subjet13_DeltaCosTheta_W', 'subjet23_DeltaCosTheta_W', 'subjet12_DeltaCosTheta_Z', 'subjet13_DeltaCosTheta_Z', 'subjet23_DeltaCosTheta_Z', 'asymmetry_Higgs', 'asymmetry_Top', 'asymmetry_W', 'asymmetry_Z']
+         print(len(self.besInput_Labels))
          for i in range(0,len(data_dict['QCD_BES'][0])):
+            if 'nSub' in self.besInput_Labels[i]: var_range = [3, 54]
+            if 'mass' in self.besInput_Labels[i] or 'Mass' in self.besInput_Labels[i]: var_range = [0, 500]
+            if 'pt' in self.besInput_Labels[i]: var_range = [0, 7000]
             plt.figure()
-            plt.hist(data_dict['QCD_BES'][i], bins=20, color='b', label='QCD', histtype='step', normed=True)
-            plt.hist(data_dict['H_BES'][i], bins=20, color='m', label='H', histtype='step', normed=True)
-            plt.hist(data_dict['T_BES'][i], bins=20, color='r', label='T', histtype='step', normed=True)
-            plt.hist(data_dict['W_BES'][i], bins=20, color='g', label='W', histtype='step', normed=True)
-            plt.hist(data_dict['Z_BES'][i], bins=20, color='y', label='Z', histtype='step', normed=True)
-            plt.hist(data_dict['B_BES'][i], bins=20, color='c', label='B', histtype='step', normed=True)
-            plt.xlabel(i)
+            plt.hist(data_dict['QCD_BES'][:,i], bins=50, color='b', label='QCD', histtype='step', normed=True)
+            plt.hist(data_dict['H_BES'][:,i], bins=50, color='m', label='H', histtype='step', normed=True)
+            plt.hist(data_dict['t_BES'][:,i], bins=50, color='r', label='t', histtype='step', normed=True)
+            plt.hist(data_dict['W_BES'][:,i], bins=50, color='g', label='W', histtype='step', normed=True)
+            plt.hist(data_dict['Z_BES'][:,i], bins=50, color='y', label='Z', histtype='step', normed=True)
+            plt.hist(data_dict['B_BES'][:,i], bins=50, color='c', label='b', histtype='step', normed=True)
+            plt.xlabel(self.besInput_Labels[i])
             plt.legend()
-            plt.savefig("plots/Hist_"+str(i)+"_.pdf")
+            plt.savefig("plots/Hist_"+self.besInput_Labels[i]+"_Scalarized.pdf")
             plt.close()
-         print 'Plotted All BES Inputs'
+         print ('Plotted All BES Inputs')
       return data_dict
 
    def split_train_valid(self):
@@ -80,21 +88,25 @@ class GenerateBatch(object):
       #Loop over weights instead of dataset, much smaller amount to load                                                                                                                                           
       #This should give number per pT bin in weights                                                                                                                                                                 
       for flavor in self.classes:   
-#         weights = h5py.File(self.weightfilelist[flavor], "r")
          temp_list = []
+         #Save the indices to a list, and remove events with no chance of being kept
          for i in range(0, len(self.weights[flavor])):
-            temp_list.append(i)
-            pass
+            if self.weights[flavor][i] > 0:
+               temp_list.append(i)
+
+         #Now randomize those indices
          numpy.random.shuffle(temp_list)
-         train_stop_index = int((1-self.validation_frac) * len(self.weights[flavor]))
+#         train_stop_index = int((1-self.validation_frac) * len(self.weights[flavor]))
+         train_stop_index = int((1-self.validation_frac) * len(temp_list))
+         #Now assign a fraction to train, and another to list
          for index in temp_list[0:train_stop_index]:
             keep_train_list[flavor].append(index)
-            pass
+
          for index in temp_list[train_stop_index:len(self.weights[flavor])]:
             keep_valid_list[flavor].append(index)
-            pass
-#         weights.close()
-         pass
+         print(flavor, len(keep_train_list[flavor]), len(keep_valid_list[flavor]))
+
+      #If debugging, check how many events make it into each fraction, and keep track of intersections
       if self.debug_info:
          for flavor in self.classes:
             with open('TrainIndices_'+flavor+'.txt', 'w') as indexfile:
@@ -107,7 +119,8 @@ class GenerateBatch(object):
                indexfile.close()
             set_train = set(keep_train_list[flavor])
             set_valid = set(keep_valid_list[flavor])
-            print 'Are training/validation disjoint?', set_valid.isdisjoint(set_train)
+            print ('Are training/validation disjoint?', set_valid.isdisjoint(set_train))
+            print(flavor, len(keep_train_list[flavor]), len(keep_valid_list[flavor]))
       return keep_train_list, keep_valid_list
    
 
@@ -163,18 +176,18 @@ class GenerateBatch(object):
             keep_train_list = keep_train_list[0:int(self.batch_size/self.num_classes)]
          
       else:
-         print 'Only train or valid are supported, this cant run'
+         print ('Only train or valid are supported, this cant run')
          exit()
 
 
       if self.debug_info:
          if batch_type == "train":
-            print "Number of duplicated training events between batches: ", len(set(keep_train_list).intersection(set(self.last_train_keep[particle_key])))
-            print set(keep_train_list).intersection(set(self.last_train_keep[particle_key]))
+            print ("Number of duplicated training events between batches: ", len(set(keep_train_list).intersection(set(self.last_train_keep[particle_key]))))
+            print (set(keep_train_list).intersection(set(self.last_train_keep[particle_key])))
             self.last_train_keep[particle_key] = keep_train_list
          elif batch_type == "valid":
-            print "Number of duplicated validation events between batches: ", len(set(keep_train_list).intersection(set(self.last_valid_keep[particle_key])))
-            print set(keep_train_list).intersection(set(self.last_valid_keep[particle_key]))
+            print ("Number of duplicated validation events between batches: ", len(set(keep_train_list).intersection(set(self.last_valid_keep[particle_key]))))
+            print (set(keep_train_list).intersection(set(self.last_valid_keep[particle_key])))
             self.last_valid_keep[particle_key] = keep_train_list
 
 
@@ -184,7 +197,7 @@ class GenerateBatch(object):
 
       if 'QCD' in particle_key: particle_index = 1
       if 'H' in particle_key: particle_index = 2
-      if 'T' in particle_key: particle_index = 3
+      if 't' in particle_key: particle_index = 3
       if 'W' in particle_key: particle_index = 4
       if 'Z' in particle_key: particle_index = 5
       if 'B' in particle_key: particle_index = 6
@@ -199,25 +212,37 @@ class GenerateBatch(object):
             for n, index in enumerate(keep_train_list):
                temp_image_train_list[i][n] = self.data[particle_key+'_'+key][index]
                if self.debug_info and n is 0 and i is 0:
-                  print key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index])
+                  print (key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index]))
 
 
          if 'BES' in key:
             for n, index in enumerate(keep_train_list):
                best_vars_train_list.append(self.data[particle_key+'_'+key][index])
                if self.debug_info and n is 0:
-                  print key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index])
+                  print (key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index]))
 
-      if self.debug_info:
-         print len(temp_image_train_list), len(temp_image_train_list[0]), len(temp_image_train_list[0][0])
+                  
+#      print(len(best_vars_train_list), len(best_vars_train_list[0]), batch_type, particle_key)
 
       return_train_batch = [temp_image_train_list[0], temp_image_train_list[1], temp_image_train_list[2], temp_image_train_list[3], best_vars_train_list]
-
+      
       if (self.smearImage):
          for i, key in enumerate(self.inputs):
             if 'BES' not in key:
                for m in xrange(0, len(return_train_batch[i])):
                   return_train_batch[i][m] = self.gaussSmear(return_train_batch[i][m])
+      if self.debug_plots:
+         print(len(best_vars_train_list), len(best_vars_train_list[0]), batch_type)
+         for i in range(len(best_vars_train_list)):
+            if 'nSub' in self.besInput_Labels[i]: var_range = [3, 54]
+            if 'mass' in self.besInput_Labels[i] or 'Mass' in self.besInput_Labels[i]: var_range = [0, 500]
+            if 'pt' in self.besInput_Labels[i]: var_range = [0, 7000]
+            plt.figure()
+            plt.hist(best_vars_train_list[i], bins=50, color='b', label=particle_key, histtype='step', normed=True)
+            plt.xlabel(self.besInput_Labels[i])
+            plt.legend()
+            plt.savefig("plots/Hist_"+self.besInput_Labels[i]+"_Scalarized_Batch_"+particle_key+"_"+batch_type+".pdf")
+            plt.close()
 
       return return_train_batch
    def train_looping(self, batch_type):
@@ -225,7 +250,7 @@ class GenerateBatch(object):
       for index, particle in enumerate(self.classes):
          if 'QCD' in particle: particle_index = 0
          elif 'H' in particle: particle_index = 1
-         elif 'T' in particle: particle_index = 2
+         elif 't' in particle: particle_index = 2
          elif 'W' in particle: particle_index = 3
          elif 'Z' in particle: particle_index = 4
          elif 'B' in particle: particle_index = 5
@@ -239,7 +264,7 @@ class GenerateBatch(object):
             for i in range(0,len(train_temp)):
                big_train_batch[i] = numpy.concatenate([big_train_batch[i], train_temp[i]])
             if self.debug_info:
-               print index, particle, len(big_train_batch), len(big_train_batch[0]), len(big_train_batch[1]),  len(big_train_batch[2]),  len(big_train_batch[3]),  len(big_train_batch[4])
+               print (index, particle, len(big_train_batch), len(big_train_batch[0]), len(big_train_batch[1]),  len(big_train_batch[2]),  len(big_train_batch[3]),  len(big_train_batch[4]))
                self.debug_info = False
 
       rng_state = numpy.random.get_state()
