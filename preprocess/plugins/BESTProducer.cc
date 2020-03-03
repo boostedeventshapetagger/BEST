@@ -552,7 +552,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       bool GenMatching = false;
       TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
 
-      if(ijet->subjets("SoftDropPuppi").size() >= 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
+      if(ijet->subjets("SoftDropPuppi").size() >=2 && ijet->numberOfDaughters() > 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
 
 	// gen particle loop, only relevant for non-QCD jets
 	if (jetType_ !=0){
@@ -575,7 +575,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  // Get all of the Jet's daughters
 	  vector<reco::Candidate * > daughtersOfJet;
 	  getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
-
+	  if (daughtersOfJet.size() < 3) continue;
 	  // Higgs Rest Frame Variables
 	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
 

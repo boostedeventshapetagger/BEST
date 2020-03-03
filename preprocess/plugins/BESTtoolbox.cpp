@@ -97,10 +97,11 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
                      std::map<std::string, std::vector<float> > &jetVecVars, int jetColl ){
     // First get all daughters for the first Soft Drop Subjet
     for (unsigned int i = 0; i < jet->daughter(0)->numberOfDaughters(); i++){
-        daughtersOfJet.push_back( (reco::Candidate *) jet->daughter(0)->daughter(i) );
-        jetVecVars["jet_PF_candidate_pt"].push_back(jet->daughter(0)->daughter(i)->pt() );
-        jetVecVars["jet_PF_candidate_phi"].push_back(jet->daughter(0)->daughter(i)->phi() );
-        jetVecVars["jet_PF_candidate_eta"].push_back(jet->daughter(0)->daughter(i)->eta() );
+      if (jet->daughter(0)->daughter(i)->pt() < 0.5) continue;
+      daughtersOfJet.push_back( (reco::Candidate *) jet->daughter(0)->daughter(i) );
+      jetVecVars["jet_PF_candidate_pt"].push_back(jet->daughter(0)->daughter(i)->pt() );
+      jetVecVars["jet_PF_candidate_phi"].push_back(jet->daughter(0)->daughter(i)->phi() );
+      jetVecVars["jet_PF_candidate_eta"].push_back(jet->daughter(0)->daughter(i)->eta() );
         // PUPPI weights for puppi jets
         if (jetColl == 1){
             pat::PackedCandidate *iparticle = (pat::PackedCandidate *) jet->daughter(0)->daughter(i);
@@ -113,6 +114,8 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
     }
     // Get all daughters for the second Soft Drop Subjet
     for (unsigned int i = 0; i < jet->daughter(1)->numberOfDaughters(); i++){
+      if (jet->daughter(1)->daughter(i)->pt() < 0.5) continue;
+
         daughtersOfJet.push_back( (reco::Candidate *) jet->daughter(1)->daughter(i));
         jetVecVars["jet_PF_candidate_pt"].push_back(jet->daughter(1)->daughter(i)->pt() );
         jetVecVars["jet_PF_candidate_phi"].push_back(jet->daughter(1)->daughter(i)->phi() );
@@ -129,6 +132,7 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
     }
     // Get all daughters not included in Soft Drop
     for (unsigned int i = 2; i< jet->numberOfDaughters(); i++){
+      if (jet->daughter(i)->pt() < 0.5) continue;
         daughtersOfJet.push_back( (reco::Candidate *) jet->daughter(i) );
         jetVecVars["jet_PF_candidate_pt"].push_back(jet->daughter(i)->pt() );
         jetVecVars["jet_PF_candidate_phi"].push_back(jet->daughter(i)->phi() );
