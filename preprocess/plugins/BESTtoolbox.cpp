@@ -311,8 +311,8 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     EventShapeVariables eventShapes( particles2 );
     Thrust thrustCalculator( particles3.begin(), particles3.end() );
     treeVars["isotropy_"+frame]   = eventShapes.isotropy();
-    treeVars["sphericity_"+frame] = eventShapes.sphericity(2);
-    treeVars["aplanarity_"+frame] = eventShapes.aplanarity(2);
+    treeVars["sphericity_"+frame] = eventShapes.sphericity();
+    treeVars["aplanarity_"+frame] = eventShapes.aplanarity();
     treeVars["thrust_"+frame]     = thrustCalculator.thrust();
 
     // Jet Asymmetry
