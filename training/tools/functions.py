@@ -14,12 +14,13 @@ import random
 import itertools
 import types
 import tempfile
-import keras.models
+#import keras.models
 
 # grab some keras stuff
 from os import environ
 environ["KERAS_BACKEND"] = "tensorflow" #must set backend before importing keras
 import keras.backend as K
+import keras.models
 
 # functions from modules
 from sklearn import svm, metrics, preprocessing, datasets
@@ -69,34 +70,6 @@ def plot_confusion_matrix(cm, classes,
    plt.tight_layout() #make all the axis labels not get cutoff
 
 #==================================================================================
-# Get Branch Names ////////////////////////////////////////////////////////////////
-#----------------------------------------------------------------------------------
-# tree is a TTree /////////////////////////////////////////////////////////////////
-#----------------------------------------------------------------------------------
-
-def getBranchNames(tree ):
-
-   # empty array to store names
-   treeVars = []
-
-   # loop over branches
-   for branch in tree.GetListOfBranches():
-      name = branch.GetName()
-      if 'nJets' in name:
-         continue
-      if 'SoftDropMass' in name:
-         continue
-      if 'mass' in name:
-         continue
-      if 'gen' in name:
-         continue
-      if 'pt' in name:
-         continue
-      treeVars.append(name)
-
-   return treeVars
-
-#==================================================================================
 # Get BEST Branch Names ///////////////////////////////////////////////////////////
 #----------------------------------------------------------------------------------
 # tree is a TTree /////////////////////////////////////////////////////////////////
@@ -110,23 +83,73 @@ def getBestBranchNames(tree ):
    # loop over branches
    for branch in tree.GetListOfBranches():
       name = branch.GetName()
+      if 'Njets' in name:
+         continue
       if 'nJets' in name:
          continue
-      if 'SoftDropMass' in name:
+      if 'target' in name:
          continue
-      if 'mass' in name:
+      if 'NNout' in name:
          continue
       if 'gen' in name:
          continue
-      if 'pt' in name:
+      if 'flatten' in name:
+         continue
+      if 'dist' in name:
+         continue
+      if 'npv' in name:
+         continue
+      if 'jetAK8_eta' in name:
+         continue
+      if 'jetAK8_phi' in name:
+         continue
+      if name == 'isB':
+         continue
+      if name == 'isT':
+         continue
+      if name == 'isW':
+         continue
+      if name == 'isZ':
+         continue
+      if name == 'isH':
          continue
       if 'candidate' in name:
          continue
-      if 'subjet' in name:
+      if '_mass' in name and not 'Higgs'in name:
+         continue
+      if 'isotropy' in name and not 'isotropy_H' in name:
+         continue
+      if 'sumP' in name:
+         continue
+      if 'PUPPI_Weights' in name:
+         continue
+      if 'SH_' in name:
+         continue
+      if 'SV' in name:
+         continue
+      if 'subjet_p' in name:
+         continue
+      if 'subjet_energy' in name:
          continue
       treeVars.append(name)
-
+   print len(treeVars), "variables used in BES will be:", treeVars
    return treeVars
+
+#==================================================================================                                                                                                                          
+# Save BES Vars to a numpy array ////////////////////////////////////////////////////////                                                                                                                     
+def GetBESVars(jet, treeVars):
+   bes_vars = []
+   for var_name in treeVars:
+      #Flatten any inputs that are vectors
+      obj = getattr(jet,var_name)
+      if hasattr(obj, '__len__'):
+         for lim, val in enumerate(obj):
+            if lim > 109: break #Should stop by Ylm 10,-10
+            bes_vars.append(val)
+            print var_name
+      else:
+         bes_vars.append(getattr(jet,var_name))
+   return numpy.array(bes_vars)
 
 #==================================================================================
 # Append Arrays from trees ////////////////////////////////////////////////////////
@@ -314,3 +337,10 @@ def make_keras_picklable():
     cls = keras.models.Model
     cls.__getstate__ = __getstate__
     cls.__setstate__ = __setstate__
+
+
+
+
+
+
+   

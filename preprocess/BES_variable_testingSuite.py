@@ -95,7 +95,7 @@ for ijet in range(0, len(jetArray)):
         if "SV" not in treeVars[iMass] and jetArray[ijet][iMass] < -1.0 :  # choose negative 0.1 because there seems to be precision errors with smaller values
             print "ERROR: ", treeVars[iMass], " is negative: ", jetArray[ijet][iMass]
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
  
     #-------------------------------------------------------------------------------------
     # Candidate Tests  -------------------------------------------------------------------
@@ -106,7 +106,7 @@ for ijet in range(0, len(jetArray)):
             
             print "ERROR: NEGATIVE ENERGY in the PF Candidates"
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
 
     #-------------------------------------------------------------------------------------
     # Test N-Jettiness -------------------------------------------------------------------
@@ -115,7 +115,7 @@ for ijet in range(0, len(jetArray)):
     for iTau in indTau :
         if jetArray[ijet][iTau] < 0.0 or jetArray[ijet][iTau] > 1.0 :
             print "ERROR: NJettiness is outside [0.0, 1.0]: ", treeVars[iTau], " = ", jetArray[ijet][iTau]
-            exit()
+            exit(1)
 
     #-------------------------------------------------------------------------------------
     # Subjet Tests -----------------------------------------------------------------------
@@ -125,22 +125,22 @@ for ijet in range(0, len(jetArray)):
         if jetArray[ijet][indHsub][isub] <= 0 :
             print "ERROR: Negative energy in the Higgs frame subjets"
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
     for isub in range(0, len(jetArray[ijet][indTsub])):
         if jetArray[ijet][indTsub][isub] <= 0 :
             print "ERROR: Negative energy in the Top frame subjets"
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
     for isub in range(0, len(jetArray[ijet][indWsub])):
         if jetArray[ijet][indWsub][isub] <= 0 :
             print "ERROR: Negative energy in the W frame subjets"
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
     for isub in range(0, len(jetArray[ijet][indZsub])):
         if jetArray[ijet][indZsub][isub] <= 0 :
             print "ERROR: Negative energy in the Z frame subjets"
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
 
     #-------------------------------------------------------------------------------------
     # Fox Wolfram Moments ----------------------------------------------------------------
@@ -150,7 +150,7 @@ for ijet in range(0, len(jetArray)):
     for iMom in indFoxWolf :
         if abs(jetArray[ijet][iMom]) > 1 :
             print "ERROR: ", treeVars[iMom], " is outside the expected range of [-1, 1], it's value is ", jetArray[ijet][iMom]
-            exit() 
+            exit(1) 
 
 print "The testing session has concluded"
 print "Mischief Managed!"
