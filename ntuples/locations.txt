@@ -1,0 +1,4 @@
+## Placeholder file. Depending on how we organize this could just be a list of paths
+
+## e.g. W+Jets
+# /lpc/mydir/WJets.root
