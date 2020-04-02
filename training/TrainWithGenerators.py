@@ -85,10 +85,10 @@ HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
 HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer) 
 HiggsImageLayer = Flatten()(HiggsImageLayer)
 HiggsImageLayer = Dropout(0.20)(HiggsImageLayer)
-HiggsImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-HiggsImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-HiggsImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-HiggsImageLayer = Dropout(0.10)(HiggsImageLayer)
+#HiggsImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+#HiggsImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+#HiggsImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+#HiggsImageLayer = Dropout(0.10)(HiggsImageLayer)
 
 HiggsImageModel = Model(inputs = HiggsImageInputs, outputs = HiggsImageLayer)
 
@@ -111,10 +111,10 @@ TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
 TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
 TopImageLayer = Flatten()(TopImageLayer)
 TopImageLayer = Dropout(0.20)(TopImageLayer)
-TopImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-TopImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-TopImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-TopImageLayer = Dropout(0.10)(TopImageLayer)
+#TopImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+#TopImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+#TopImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+#TopImageLayer = Dropout(0.10)(TopImageLayer)
 
 TopImageModel = Model(inputs = TopImageInputs, outputs = TopImageLayer)
 
@@ -137,10 +137,10 @@ WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
 WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
 WImageLayer = Flatten()(WImageLayer)
 WImageLayer = Dropout(0.20)(WImageLayer)
-WImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-WImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-WImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-WImageLayer = Dropout(0.10)(WImageLayer)
+#WImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+#WImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+#WImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+#WImageLayer = Dropout(0.10)(WImageLayer)
 
 WImageModel = Model(inputs = WImageInputs, outputs = WImageLayer)
 
@@ -164,10 +164,10 @@ ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
 ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
 ZImageLayer = Flatten()(ZImageLayer)
 ZImageLayer = Dropout(0.20)(ZImageLayer)
-ZImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-ZImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-ZImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-ZImageLayer = Dropout(0.10)(ZImageLayer)
+#ZImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+#ZImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+#ZImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+#ZImageLayer = Dropout(0.10)(ZImageLayer)
 
 ZImageModel = Model(inputs = ZImageInputs, outputs = ZImageLayer)
 
@@ -225,7 +225,7 @@ print ('Starting training')
 
 #Set Steps per Epoch to be N_Samples / BatchSize
 #Begin training
-history = model_BEST.fit_generator(generator = data_generator.generator_train(), validation_data=data_generator.generator_valid(), steps_per_epoch = (data_generator.train_length//(25*BatchSize)) , epochs=100, callbacks=[early_stopping, model_checkpoint], validation_steps = (data_generator.valid_length//(25*BatchSize)), use_multiprocessing = True, workers=4) 
+history = model_BEST.fit_generator(generator = data_generator.generator_train(), validation_data=data_generator.generator_valid(), steps_per_epoch = (data_generator.train_length//(10*BatchSize)) , epochs=100, callbacks=[early_stopping, model_checkpoint], validation_steps = (data_generator.valid_length//(5*BatchSize)), use_multiprocessing = True, workers=4) 
 #Testing with just BES vars
 #history = model_BEST.fit([trainHiggsImages[:], trainBESvars[:]], trainTruth[:], batch_size=1000, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_split = 0.15)
 

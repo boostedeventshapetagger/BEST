@@ -4,7 +4,7 @@ from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 
-GT = '94X_mc2017_realistic_v17'
+GT = '102X_mc2017_realistic_v7'
 process = cms.Process("run")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
