@@ -2,7 +2,7 @@
 
 ## Dependencies 
 
-This repository requires CMSSW and advanced python tools for machine learning.
+This repository requires CMSSW and python tools for machine learning.
 
 ## Installation
 
@@ -82,4 +82,8 @@ git checkout CentralDev
 git pull
 git checkout -b feature/MyFeatureBranch
 ```
+
+## NTuple location
+
+Some preprocessed ntuples of the Monte Carlo simulated data already exist on the LPC EOS at `/store/user/rband/BESTSamples` These ntuples can be used in the JetCamera step.
 
