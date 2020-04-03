@@ -42,7 +42,7 @@ config.gpu_options.per_process_gpu_memory_fraction = 0.6
 k.tensorflow_backend.set_session(tf.Session(config=config))
 
 # user modules
-import tools.functions as tools
+import tools.functions as functs
 from tools.GenerateBatch import GenerateBatch
 # Print which gpu/cpu this is running on
 sess = tf.Session(config=config)
@@ -51,7 +51,6 @@ print(sess.run(h))
 
 # set options 
 savePDF = True
-savePNG = False 
 plotInputs = True
 #==================================================================================
 # Load Jet Images /////////////////////////////////////////////////////////////////
@@ -64,7 +63,9 @@ arbitrary_length = 10 #Hopefully this number doesn't matter
 nx = 31
 ny = 31
 ImageShapeHolder = numpy.zeros((arbitrary_length, nx, ny, 1))
-BestShapeHolder = 45
+BestShapeHolder = 94
+
+BatchSize = 1200
 
 HiggsImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
 
@@ -84,10 +85,10 @@ HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
 HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer) 
 HiggsImageLayer = Flatten()(HiggsImageLayer)
 HiggsImageLayer = Dropout(0.20)(HiggsImageLayer)
-HiggsImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-HiggsImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-HiggsImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-HiggsImageLayer = Dropout(0.10)(HiggsImageLayer)
+#HiggsImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+#HiggsImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+#HiggsImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+#HiggsImageLayer = Dropout(0.10)(HiggsImageLayer)
 
 HiggsImageModel = Model(inputs = HiggsImageInputs, outputs = HiggsImageLayer)
 
@@ -110,10 +111,10 @@ TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
 TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
 TopImageLayer = Flatten()(TopImageLayer)
 TopImageLayer = Dropout(0.20)(TopImageLayer)
-TopImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-TopImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-TopImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-TopImageLayer = Dropout(0.10)(TopImageLayer)
+#TopImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+#TopImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+#TopImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+#TopImageLayer = Dropout(0.10)(TopImageLayer)
 
 TopImageModel = Model(inputs = TopImageInputs, outputs = TopImageLayer)
 
@@ -136,10 +137,10 @@ WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
 WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
 WImageLayer = Flatten()(WImageLayer)
 WImageLayer = Dropout(0.20)(WImageLayer)
-WImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-WImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-WImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-WImageLayer = Dropout(0.10)(WImageLayer)
+#WImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+#WImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+#WImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+#WImageLayer = Dropout(0.10)(WImageLayer)
 
 WImageModel = Model(inputs = WImageInputs, outputs = WImageLayer)
 
@@ -163,10 +164,10 @@ ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
 ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
 ZImageLayer = Flatten()(ZImageLayer)
 ZImageLayer = Dropout(0.20)(ZImageLayer)
-ZImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-ZImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-ZImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-ZImageLayer = Dropout(0.10)(ZImageLayer)
+#ZImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+#ZImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+#ZImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+#ZImageLayer = Dropout(0.10)(ZImageLayer)
 
 ZImageModel = Model(inputs = ZImageInputs, outputs = ZImageLayer)
 
@@ -176,7 +177,7 @@ besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(bes
 besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besLayer)
 
 besModel = Model(inputs = besInputs, outputs = besLayer)
-print besModel.output
+print (besModel.output)
 # Add BES variables to the network
 combined = concatenate([HiggsImageModel.output, TopImageModel.output, WImageModel.output, ZImageModel.output, besModel.output])
 #Testing with just Higgs layer
@@ -210,7 +211,7 @@ print(model_BEST.summary() )
 
 # early stopping
 
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=20, verbose=0, mode='auto')
+early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto', restore_best_weights=True)
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
@@ -219,29 +220,31 @@ model_checkpoint = ModelCheckpoint('BEST_model.h5', monitor='val_loss',
                                    save_weights_only=False, mode='auto', 
                                    period=1)
 
-# train the neural network
-data_generator = GenerateBatch(batch_size = 1200, validation_frac = 0.2, smearImage = False, debug_info = False, debug_plots = False)
-print 'Starting training'
-history = model_BEST.fit_generator(generator = data_generator.generator_train(), validation_data=data_generator.generator_valid(), steps_per_epoch = 40, epochs=100, callbacks=[early_stopping, model_checkpoint], validation_steps = 5, use_multiprocessing = True, workers=4) 
+data_generator = GenerateBatch(batch_size = BatchSize, validation_frac = 0.2, smearImage = False, debug_info = False, debug_plots = False)
+print ('Starting training')
+
+#Set Steps per Epoch to be N_Samples / BatchSize
+#Begin training
+history = model_BEST.fit_generator(generator = data_generator.generator_train(), validation_data=data_generator.generator_valid(), steps_per_epoch = (data_generator.train_length//(10*BatchSize)) , epochs=100, callbacks=[early_stopping, model_checkpoint], validation_steps = (data_generator.valid_length//(5*BatchSize)), use_multiprocessing = True, workers=4) 
 #Testing with just BES vars
 #history = model_BEST.fit([trainHiggsImages[:], trainBESvars[:]], trainTruth[:], batch_size=1000, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_split = 0.15)
 
-print "Trained the neural network!"
+print ("Trained the neural network!")
 
 # print model visualization
 #plot_model(model_HHESTIA, to_file='plots/boost_CosTheta_NN_Vis.png')
 
 # Evaluate on ALL the data
-testHiggsImages = numpy.concatenate([data_generator.data['QCD_H'], data_generator.data['H_H'], data_generator.data['T_H'], data_generator.data['W_H'], data_generator.data['Z_H'], data_generator.data['B_H']])
+testHiggsImages = numpy.concatenate([data_generator.data['QCD_H'], data_generator.data['H_H'], data_generator.data['t_H'], data_generator.data['W_H'], data_generator.data['Z_H'], data_generator.data['B_H']])
 #print type(testHiggsImages)
-testTopImages = numpy.concatenate([data_generator.data['QCD_T'], data_generator.data['H_T'], data_generator.data['T_T'], data_generator.data['W_T'], data_generator.data['Z_T'], data_generator.data['B_T']])
-testWImages = numpy.concatenate([data_generator.data['QCD_W'], data_generator.data['H_W'], data_generator.data['T_W'], data_generator.data['W_W'], data_generator.data['Z_W'], data_generator.data['B_W']])
-testZImages = numpy.concatenate([data_generator.data['QCD_Z'], data_generator.data['H_Z'], data_generator.data['T_Z'], data_generator.data['W_Z'], data_generator.data['Z_Z'], data_generator.data['B_Z']])
+testTopImages = numpy.concatenate([data_generator.data['QCD_T'], data_generator.data['H_T'], data_generator.data['t_T'], data_generator.data['W_T'], data_generator.data['Z_T'], data_generator.data['B_T']])
+testWImages = numpy.concatenate([data_generator.data['QCD_W'], data_generator.data['H_W'], data_generator.data['t_W'], data_generator.data['W_W'], data_generator.data['Z_W'], data_generator.data['B_W']])
+testZImages = numpy.concatenate([data_generator.data['QCD_Z'], data_generator.data['H_Z'], data_generator.data['t_Z'], data_generator.data['W_Z'], data_generator.data['Z_Z'], data_generator.data['B_Z']])
 
-testBESvars = numpy.concatenate([data_generator.data['QCD_BES'], data_generator.data['H_BES'], data_generator.data['T_BES'], data_generator.data['W_BES'], data_generator.data['Z_BES'], data_generator.data['B_BES']])
+testBESvars = numpy.concatenate([data_generator.data['QCD_BES'], data_generator.data['H_BES'], data_generator.data['t_BES'], data_generator.data['W_BES'], data_generator.data['Z_BES'], data_generator.data['B_BES']])
 #print type(testBESvars)
 
-testTruth = numpy.concatenate([numpy.full(len(data_generator.data['QCD_H']), 0), numpy.full(len(data_generator.data['H_H']), 1), numpy.full(len(data_generator.data['T_H']), 2), numpy.full(len(data_generator.data['W_H']), 3), numpy.full(len(data_generator.data['Z_H']), 4), numpy.full(len(data_generator.data['B_H']), 5)])
+testTruth = numpy.concatenate([numpy.full(len(data_generator.data['QCD_H']), 0), numpy.full(len(data_generator.data['H_H']), 1), numpy.full(len(data_generator.data['t_H']), 2), numpy.full(len(data_generator.data['W_H']), 3), numpy.full(len(data_generator.data['Z_H']), 4), numpy.full(len(data_generator.data['B_H']), 5)])
 
 testTruth=to_categorical(testTruth, num_classes = 6)
 #print len(testHiggsImages), len(testBESvars), len(testTruth)
@@ -251,20 +254,18 @@ cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([testHiggsImages[:
 plt.figure(
 )
 targetNames = ['QCD', 'H', 't', 'W', 'Z', 'B']
-tools.plot_confusion_matrix(cm.T, targetNames, normalize=True)
+functs.plot_confusion_matrix(cm.T, targetNames, normalize=True)
 if savePDF == True:
-   plt.savefig('plots/ConfusionFlatPtFourFrames_100Epochs_ExtraBigLayer512.pdf')
-if savePNG == True:
-   plt.savefig('plots/ConfusionFlatPtFourFrames_100Epochs_ExtraBigLayer512.png')
+   plt.savefig('plots/ConfusionFlatPtFourFrames_NewData.pdf')
 plt.close()
 
 
 loss = [history.history['loss'], history.history['val_loss'] ]
 acc = [history.history['acc'], history.history['val_acc'] ]
-tools.plotPerformance(loss, acc, "FlatPT")
+functs.plotPerformance(loss, acc, "FlatPT")
 
 exit()
-print 'Did not exit'
+print ('Did not exit')
 joblib.dump(model_BEST, "BEST_keras_FlatPT.pkl")
 
 
@@ -277,7 +278,7 @@ h5f.create_dataset('test_ZImages', data=testZImages, compression='lzf')
 h5f.create_dataset('test_BES_vars', data=testBESvars, compression='lzf')
 h5f.create_dataset('test_truth', data=testTruth, compression='lzf')
 
-print "Saved the testing data!"
+print ("Saved the testing data!")
 
 #==================================================================================
 # Plot Training Results ///////////////////////////////////////////////////////////
@@ -290,25 +291,23 @@ cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([testHiggsImages[:
 plt.figure()
 
 targetNames = ['QCD', 'H', 't', 'W', 'Z', 'b']
-tools.plot_confusion_matrix(cm.T, targetNames, normalize=True)
+functs.plot_confusion_matrix(cm.T, targetNames, normalize=True)
 if savePDF == True:
    plt.savefig('plots/boost_CosTheta_confusion_matrix_FlatPtOneFrame.pdf')
-if savePNG == True:
-   plt.savefig('plots/boost_CosTheta_confusion_matrix_FlatPtOneFrame.png')
 plt.close()
 
 # score
-print "Training Score: ", model_BEST.evaluate([testHiggsImages[:], testTopImages[:], testWImages[:], testZImages[:], testBESvars[:]], testTruth[:], batch_size=100)
+print ("Training Score: ", model_BEST.evaluate([testHiggsImages[:], testTopImages[:], testWImages[:], testZImages[:], testBESvars[:]], testTruth[:], batch_size=100))
 
 # performance plots
 loss = [history.history['loss'], history.history['val_loss'] ]
 acc = [history.history['acc'], history.history['val_acc'] ]
-tools.plotPerformance(loss, acc, "boost_CosTheta")
-print "plotted HESTIA training Performance"
+functs.plotPerformance(loss, acc, "boost_CosTheta")
+print ("plotted HESTIA training Performance")
 
 # make file with probability results
 joblib.dump(model_BEST, "BEST_keras_CosTheta_FourFrame.pkl")
 #joblib.dump(scaler, "BEST_scaler.pkl")
 
-print "Made weights based on probability results"
-print "Program was a great success!!!"
+print ("Made weights based on probability results")
+print ("Program was a great success!!!")

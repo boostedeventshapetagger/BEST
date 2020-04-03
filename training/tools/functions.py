@@ -115,8 +115,8 @@ def getBestBranchNames(tree ):
          continue
       if 'candidate' in name:
          continue
-      if '_mass' in name and not 'Higgs'in name:
-         continue
+#      if '_mass' in name and not 'Higgs'in name:
+#         continue
       if 'isotropy' in name and not 'isotropy_H' in name:
          continue
       if 'sumP' in name:
@@ -132,7 +132,7 @@ def getBestBranchNames(tree ):
       if 'subjet_energy' in name:
          continue
       treeVars.append(name)
-   print len(treeVars), "variables used in BES will be:", treeVars
+   print (len(treeVars), "variables used in BES will be:", treeVars)
    return treeVars
 
 #==================================================================================                                                                                                                          
@@ -146,7 +146,7 @@ def GetBESVars(jet, treeVars):
          for lim, val in enumerate(obj):
             if lim > 109: break #Should stop by Ylm 10,-10
             bes_vars.append(val)
-            print var_name
+            print (var_name)
       else:
          bes_vars.append(getattr(jet,var_name))
    return numpy.array(bes_vars)
