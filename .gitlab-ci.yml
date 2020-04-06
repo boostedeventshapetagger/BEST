@@ -8,7 +8,7 @@ stages:
 variables: 
   CMS_PATH: /cvmfs/cms.cern.ch # This is also set on LXPLUS
   CMSSW_RELEASE: CMSSW_10_2_18
-  CMSSW_FOR_CAMERA: CMSSW_10_2_18
+#  CMSSW_FOR_CAMERA: CMSSW_10_2_18
   
 # If this stage is passed, then cmssw sets up correctly
 cmssw_setup:
@@ -99,19 +99,13 @@ BEST_jetCamera:
     - shopt -s expand_aliases
     # access cvmfs
     - set +u && source ${CMS_PATH}/cmsset_default.sh; set -u
-    # use CMSSW 10 for uproot
-    - export SCRAM_ARCH=slc6_amd64_gcc630
-    - cd run
-    - cmsrel ${CMSSW_FOR_CAMERA}
-    - cd ${CMSSW_FOR_CAMERA}/src
+    - mkdir camera
+    - cp -r run/${CMSSW_RELEASE} camera/
+    - chmod -R +w camera/${CMSSW_RELEASE}/
+    - cd camera/${CMSSW_RELEASE}/src/BEST
     - cmsenv
-    # compile
-    - scram b
     # copy files for BEST
-    - mkdir -p BEST
-    - cp -r "${CI_PROJECT_DIR}/run/${CMSSW_RELEASE}/src/BEST" "${CI_PROJECT_DIR}/run/${CMSSW_FOR_CAMERA}/src"
-    - chmod -R +w BEST/
-    - cd BEST/jetCamera
+    - cd jetCamera
     - mkdir images
     - mkdir plots
     - python test_boost_jetImageCreator.py
