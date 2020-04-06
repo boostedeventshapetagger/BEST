@@ -37,7 +37,8 @@ savePNG = True
 #==================================================================================
 
 # access the TFiles and TTrees
-upTree = uproot.open("../preprocess/preprocess_BEST_ZZ.root")["run/jetTree"]
+upTree = uproot.open("../preprocess/BESTInputs.root")["run/jetTree"]
+#upTree = uproot.open("../preprocess/preprocess_BEST_ZZ.root")["run/jetTree"]
 
 # make file to store the images and BES variables
 h5f = h5py.File("images/TestBoostedJetImages.h5","w")

@@ -2,35 +2,26 @@
 
 ## Dependencies 
 
-This program requires the use of the [Jet Toolbox](https://github.com/cms-jet/JetToolbox/tree/master).
-I have included instructions for downloading this in the Installation section.
+This repository requires CMSSW and python tools for machine learning.
 
 ## Installation
 
-This program is written for use with ``CMSSW_9_X``. Start installation by installing CMSSW.
+This program is written for use with ``CMSSW_10_2_18``. Start installation by installing CMSSW.
 
 ```bash
-cmsrel CMSSW_9_4_8
-cd CMSSW_9_4_8/src/
+cmsrel CMSSW_10_2_18
+cd CMSSW_10_2_18/src/
 scram b -j8
 ```
-Now, add the Jet Toolbox.
-
-```bash
-git clone -b jetToolbox_91X https://github.com/cms-jet/JetToolbox JMEAnalysis/JetToolbox
-scram b
-cmsRun JMEAnalysis/JetToolbox/test/jettoolbox_cfg.py
-```
-
-Then, clone this repository and compile the programs as modules for CMSSW.
+Then, make a fork, clone the repository, and compile the programs as modules for CMSSW.
 
 ```bash
 cd CMSSW_9_4_8/src/
-git clone https://username@gitlab.cern.ch/boostedeventshapetagger/BEST.git
+git clone https://gitlab.cern.ch/username/BEST.git
 scram b -j8
 ```
 
-Now the program can be used. 
+Now the repository can be used. 
 
 ## Overview
 
@@ -50,7 +41,7 @@ please test your code. To test any changes to the preprocess step or jetCamera, 
 cd BEST/preprocess/
 cmsenv
 scram b -j8
-cmsRun test/run_TEST.py
+cmsRun test/run_ZZ_test.py
 python BES_variable_testingSuite.py 
 cd ../jetCamera
 python test_boost_jetImageCreator.py
@@ -64,15 +55,17 @@ After tests, please rebase to the current developer version:
 
 ```bash
 # if this is your first time submitting a pull request, then do
-git remote add BEST https://username@gitlab.cern.ch/boostedeventshapetagger/BEST.git
+git remote add BEST https://gitlab.cern.ch/boostedeventshapetagger/BEST.git
 git fetch -p --all
-git checkout -t BEST/developer
+git checkout -b CentralDev -t BEST/developer #this creates a local branch called CentralDev that tracks the main developer branch
 # then every time you want to ensure that the code is up to date
 git fetch -p --all
-git checkout developer
+git checkout CentralDev
 git pull
-git checkout <my feature branch>
-git rebase -i developer
+git checkout feature/MyFeatureBranch
+git rebase -i CentralDev
+# follow the rebase instructions
+git push 
 ```
 
 Finally, submit your a merge request on GitLab to the `developer` branch in `boostedeventshapetagger/BEST`.
@@ -85,8 +78,12 @@ Make sure that you are up-to-date with BEST/developer before making a new featur
 
 ```bash
 git fetch -p --all
-git checkout developer
+git checkout CentralDev
 git pull
-git checkout -b <new feature branch>
+git checkout -b feature/MyFeatureBranch
 ```
+
+## NTuple location
+
+Some preprocessed ntuples of the Monte Carlo simulated data already exist on the LPC EOS at `/store/user/rband/BESTSamples` These ntuples can be used in the JetCamera step.
 
