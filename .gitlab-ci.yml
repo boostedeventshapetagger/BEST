@@ -7,9 +7,8 @@ stages:
 # Global Variables
 variables: 
   CMS_PATH: /cvmfs/cms.cern.ch # This is also set on LXPLUS
-  CMSSW_RELEASE: CMSSW_9_4_8
-  CMSSW_FOR_CAMERA: CMSSW_10_1_7
-  #CMSSW_FOR_CAMERA: CMSSW_10_6_8_patch1
+  CMSSW_RELEASE: CMSSW_10_2_18
+  CMSSW_FOR_CAMERA: CMSSW_10_2_18
   
 # If this stage is passed, then cmssw sets up correctly
 cmssw_setup:
@@ -75,7 +74,7 @@ BEST_preprocess:
     - printf $GRID_USERCERT | base64 -d > ${HOME}/.globus/usercert.pem
     - printf $GRID_USERKEY | base64 -d > ${HOME}/.globus/userkey.pem
     - chmod 400 ${HOME}/.globus/userkey.pem
-    - echo ${GRID_PASSWORD} | voms-proxy-init --voms cms --pwstdin
+    - echo ${GRID_PASSWORD} | base64 -d > voms-proxy-init --voms cms --pwstdin
     # test the preprocess
     - cd preprocess
     - cmsRun test/run_ZZ_test.py
