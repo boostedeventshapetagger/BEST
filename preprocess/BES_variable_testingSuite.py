@@ -36,7 +36,8 @@ def appendTreeArray(array):
 #=========================================================================================
 
 # access the TFiles
-fileTest = root.TFile("preprocess_BEST_ZZ.root", "READ")
+fileTest = root.TFile("BESTInputs.root", "READ")
+#fileTest = root.TFile("preprocess_BEST_ZZ.root", "READ")
 #fileTest = root.TFile("preprocess_BEST_QCD.root", "READ")
 #fileTest = root.TFile("preprocess_BEST_bb.root", "READ")
 #fileTest = root.TFile("preprocess_BEST_TEST.root", "READ")
