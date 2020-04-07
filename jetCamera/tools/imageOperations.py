@@ -25,8 +25,8 @@ def boostedJetPhotoshoot(upTree, frame, nbins, h5f, jetDF):
 
     nx = nbins # number of image bins in phi
     ny = nbins # number of image bins in theta
-    jetDF['test_images'] = np.zeros((len(upTree.array(["jetAK8_pt"]) ), nx, ny, 1) ) # made for tensorFlow
-
+    jetDF['jet_images'] = np.zeros((len(upTree.pandas.df(["jetAK8_pt"]) ), nx, ny, 1) ) # made for tensorFlow
+    
     # Loop over jets using the proper rest frame
     jetCount = 0
     for ijet in upTree.iterate([frame+"Frame_PF_candidate*", "jetAK8_pt", "jetAK8_phi", 
@@ -35,6 +35,11 @@ def boostedJetPhotoshoot(upTree, frame, nbins, h5f, jetDF):
         if jetCount % 10000 == 0: print "Taking a picture of beautiful Jet number: ", jetCount + 1
 
         candArray = []
+        # if the jet has no PF candidates, set everything to 0
+        if len(ijet[frame+'Frame_PF_candidate_px'][0]) == 0:
+            candLV = root.TLorentzVector(0.0, 0.0, 0.0, 0.01)
+            candArray = [candLV]
+            
         for i in range( len(ijet[frame+'Frame_PF_candidate_px'][0]) ) :
             px = ijet[frame+'Frame_PF_candidate_px'][0][i]
             py = ijet[frame+'Frame_PF_candidate_py'][0][i]
@@ -52,14 +57,18 @@ def boostedJetPhotoshoot(upTree, frame, nbins, h5f, jetDF):
                 candArray.append(candLV) 
        
         # take a picture
+        if len(candArray) == 0: 
+            print "The Candidate Array is 0?"
+            print "'I mean, you could claim that anything's real if the only basis for believing in it is that nobody's proved it doesn't exist'"
+            print "Jet count ", jetCount
         jetPic = boostedJetCamera(candArray, nbins) 
         for ix in range(0,nx):
             for iy in range(0,ny):
-                jetDF['test_images'][jetCount,ix,iy,0] = jetPic[ix,iy]
+                jetDF['jet_images'][jetCount,ix,iy,0] = jetPic[ix,iy]
         jetCount += 1  
 
     # save the jet images to an h5 file
-    h5f.create_dataset('test_images', data=jetDF['test_images'], compression='lzf')
+    h5f.create_dataset('jet_images', data=jetDF['jet_images'], compression='lzf')
     
     print "Finished the Jet Photoshot! You're candidates are GORGEOUS"
 
@@ -122,7 +131,7 @@ def boostedRotations(candArray):
         if icand.E() > leadE : 
             print "ERROR: Energy sorting was done incorrectly!"
             print " 'I stand by what I said ... you would have done well in Slytherin'"
-            exit()     
+            exit(1)     
 
         # rotate so that the leading jet is in the xy plane 
         icand.RotateZ(-rotPhi)
@@ -157,7 +166,7 @@ def boostedRotations(candArray):
         if icand.E() > subleadE and icand.E() < leadE : 
             if abs( (icand.Phi() - leadLV.Phi() ) ) > 1.0 : 
                 print "Error: Subleading candidate was improperly identified!"  
-                exit()
+                exit(1)
   
         # rotatate about x with psi to get subleading candidate to x-y plane      
         icand.RotateX(subPsi - np.pi/2)
@@ -165,10 +174,10 @@ def boostedRotations(candArray):
         #Make sure that subleading candidate has been fully rotated
         if icand.E() == subleadE and abs(icand.Pz() ) < 0.01 : icand.SetPz(0)
  
-        if icand.M() < -0.1: 
+        if icand.M() < -2.0: 
             print "ERROR: Negative Candidate Mass: ", icand.M()
             print " 'Awful things happen to wizards who meddle with time, Harry'"
-            exit()
+            exit(1)
  
     # Reflect if bottomSum > topSum and/or leftSum > rightSum
     leftSum, rightSum = 0, 0

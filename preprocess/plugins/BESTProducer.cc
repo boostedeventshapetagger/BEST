@@ -432,8 +432,8 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
 
     // AK8 Jets
     edm::InputTag ak8JetsTag_;
-    //ak8JetsTag_ = edm::InputTag("slimmedJetsAK8", "", "PAT");
-    ak8JetsTag_ = edm::InputTag(inputJetColl_, "", "run");
+    ak8JetsTag_ = edm::InputTag("slimmedJetsAK8", "", "PAT");
+    //    ak8JetsTag_ = edm::InputTag(inputJetColl_, "", "run");
     ak8JetsToken_ = consumes<std::vector<pat::Jet> >(ak8JetsTag_);
 
     // Gen Particles
@@ -552,7 +552,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       bool GenMatching = false;
       TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
 
-      if(ijet->subjets("SoftDropPuppi").size() >=2 && ijet->numberOfDaughters() > 2 && ijet->pt() >= 500 && ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
+      if(ijet->subjets("SoftDropPuppi").size() >=2 && ijet->numberOfDaughters() > 2 && ijet->pt() >= 500 && fabs(ijet->eta()) < 2.4 &&ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10){
 
 	// gen particle loop, only relevant for non-QCD jets
 	if (jetType_ !=0){
@@ -592,7 +592,6 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  jetTree->Fill();
 	}
       }
-        
 
       //-------------------------------------------------------------------------------
       // Clear and Reset all tree variables -------------------------------------------
