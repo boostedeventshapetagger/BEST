@@ -9,7 +9,6 @@
 #=========================================================================================
 
 import FWCore.ParameterSet.Config as cms
-#from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 from Configuration.AlCa.GlobalTag import GlobalTag
 
@@ -38,20 +37,6 @@ process.source = cms.Source("PoolSource",
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 #=========================================================================================
-# Remake the Jet Collections -------------------------------------------------------------
-#=========================================================================================
-
-# jetToolbox( process, 'ak8', 'jetsequence', 'out',
-#     updateCollection = 'slimmedJetsAK8',
-#     JETCorrPayload= 'AK8PFPuppi',
-#     PUMethod='Puppi',
-#     runOnMC=True,    
-# #    JETCorrPayload= 'AK8PFchs',
-#     addNsub = True,
-#     maxTau = 4
-# )
-
-#=========================================================================================
 # Prepare and run producer ---------------------------------------------------------------
 #=========================================================================================
 
@@ -66,7 +51,6 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
                                     minNumber = cms.uint32(1),
                                     maxNumber = cms.uint32(99999),
                                     src = cms.InputTag('slimmedJetsAK8')
-#                                    filter = cms.bool(True)
                                     )
 
 
@@ -75,14 +59,6 @@ process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('slimmedJetsAK8'),
         jetColl = cms.string('PUPPI'),                     
         jetType = cms.string('Z')
-#	pdgIDforMatch = cms.int32(23),
-#	NNtargetX = cms.int32(1),
-#	NNtargetY = cms.int32(1),
-#	isMC = cms.int32(1),
-#        isQCD = cms.int32(0),
-#	doMatch = cms.int32(0),
-#	usePuppi = cms.int32(0)
-
 )
 process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 

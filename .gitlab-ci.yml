@@ -39,8 +39,6 @@ BEST_compile:
     - shopt -s expand_aliases
     - set +u && source ${CMS_PATH}/cmsset_default.sh; set -u
     - cmsenv
-    # clone the jet toolbox - a dependency for BEST
-    - git clone -b jetToolbox_91X https://github.com/cms-jet/JetToolbox JMEAnalysis/JetToolbox
     # copy files for BEST
     - mkdir -p BEST
     - cp -r "${CI_PROJECT_DIR}/jetCamera" "${CMSSW_BASE}/src/BEST"
