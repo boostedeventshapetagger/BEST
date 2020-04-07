@@ -1,5 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 from Configuration.AlCa.GlobalTag import GlobalTag
 
