@@ -1,5 +1,5 @@
 #=========================================================================================
-# run_QCD.py -----------------------------------------------------------------------------
+# run_ZZ.py ------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------
 # Authors: Brendan Regnery, Reyer Band ---------------------------------------------------
 #-----------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #=========================================================================================
 
 import FWCore.ParameterSet.Config as cms
+#from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 from Configuration.AlCa.GlobalTag import GlobalTag
 
@@ -24,16 +25,31 @@ process.load("JetMETCorrections.Configuration.JetCorrectionServices_cff")
 process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")
 process.GlobalTag = GlobalTag(process.GlobalTag, GT)
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
 
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        '/store/mc/RunIIFall17MiniAODv2/QCD_Pt-15to7000_TuneCP5_Flat2017_13TeV_pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/70000/AA231798-AA43-E811-BCDC-0CC47A7C35A8.root'
+        '/store/mc/RunIIFall17MiniAODv2/RadionToZZ_narrow_M-5000_TuneCP5_13TeV-madgraph/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/240000/88C32EBF-A689-E911-BE4D-A4BF0112BCD4.root'
+#        'file://88C32EBF-A689-E911-BE4D-A4BF0112BCD4.root'
         )
                             )
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 500
+
+#=========================================================================================
+# Remake the Jet Collections -------------------------------------------------------------
+#=========================================================================================
+
+# jetToolbox( process, 'ak8', 'jetsequence', 'out',
+#     updateCollection = 'slimmedJetsAK8',
+#     JETCorrPayload= 'AK8PFPuppi',
+#     PUMethod='Puppi',
+#     runOnMC=True,    
+# #    JETCorrPayload= 'AK8PFchs',
+#     addNsub = True,
+#     maxTau = 4
+# )
 
 #=========================================================================================
 # Prepare and run producer ---------------------------------------------------------------
@@ -52,11 +68,21 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
                                     src = cms.InputTag('slimmedJetsAK8')
 #                                    filter = cms.bool(True)
                                     )
+
+
 # Run the producer
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('slimmedJetsAK8'),
         jetColl = cms.string('PUPPI'),                     
-        jetType = cms.string('Q')
+        jetType = cms.string('Z')
+#	pdgIDforMatch = cms.int32(23),
+#	NNtargetX = cms.int32(1),
+#	NNtargetY = cms.int32(1),
+#	isMC = cms.int32(1),
+#        isQCD = cms.int32(0),
+#	doMatch = cms.int32(0),
+#	usePuppi = cms.int32(0)
+
 )
 process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 
@@ -72,6 +98,6 @@ process.out = cms.OutputModule("PoolOutputModule",
                                )
 process.outpath = cms.EndPath(process.out)
 
-# Organize the running procedure
+# Organize the running process
 process.p = cms.Path(process.selectedAK8Jets*process.countAK8Jets*process.run)
 
