@@ -1,5 +1,14 @@
+#=========================================================================================
+# run_HH.py ------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
+# Authors: Brendan Regnery, Reyer Band ---------------------------------------------------
+#-----------------------------------------------------------------------------------------
+
+#=========================================================================================
+# Load Modules and Settings --------------------------------------------------------------
+#=========================================================================================
+
 import FWCore.ParameterSet.Config as cms
-from JMEAnalysis.JetToolbox.jetToolbox_cff import jetToolbox
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 from Configuration.AlCa.GlobalTag import GlobalTag
 
@@ -26,17 +35,11 @@ process.source = cms.Source("PoolSource",
                             )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-# jetToolbox( process, 'ak8', 'jetsequence', 'out',
-#     updateCollection = 'slimmedJetsAK8',
-#     JETCorrPayload= 'AK8PFPuppi',
-#     PUMethod='Puppi',
-#     runOnMC=True,    
-# #    JETCorrPayload= 'AK8PFchs',
-#     addNsub = True,
-#     maxTau = 4
-# )
+#=========================================================================================
+# Prepare and run producer ---------------------------------------------------------------
+#=========================================================================================
 
-
+# Apply a preselction
 process.selectedAK8Jets = cms.EDFilter('PATJetSelector',
                                        src = cms.InputTag('slimmedJetsAK8'),
                                        cut = cms.string('pt > 500.0 && abs(eta) < 2.4'),
@@ -50,18 +53,11 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 #                                    filter = cms.bool(True)
                                     )
 
+# Run the producer
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('slimmedJetsAK8'),
         jetColl = cms.string('PUPPI'),                     
         jetType = cms.string('H')
-#	pdgIDforMatch = cms.int32(23),
-#	NNtargetX = cms.int32(1),
-#	NNtargetY = cms.int32(1),
-#	isMC = cms.int32(1),
-#        isQCD = cms.int32(0),
-#	doMatch = cms.int32(0),
-#	usePuppi = cms.int32(0)
-
 )
 process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 
@@ -77,5 +73,6 @@ process.out = cms.OutputModule("PoolOutputModule",
                                )
 process.outpath = cms.EndPath(process.out)
 
+# Organize the running procedure
 process.p = cms.Path(process.selectedAK8Jets*process.countAK8Jets*process.run)
 
