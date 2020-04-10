@@ -22,7 +22,7 @@ To run, use the cms environment to run a ``run_*.py`` file. For example:
 ```bash
 cmsenv
 cd test/
-cmsRun run_HH.py
+cmsRun run_ZZ_test.py
 ```
 
 Be sure to update any file locations in the ``run_*.py`` files!!
@@ -32,7 +32,7 @@ Be sure to update any file locations in the ``run_*.py`` files!!
 First, set up the CRAB environment and obtain a proxy
 
 ```bash
-cd test/
+cd test/submit20XX
 cmsenv
 source /cvmfs/cms.cern.ch/crab3/crab.sh
 voms-proxy-init --voms cms --valid 168:00
