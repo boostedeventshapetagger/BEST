@@ -245,10 +245,8 @@ void storeSecVertexVariables(std::map<std::string, float> &treeVars,
 
 void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector<reco::Candidate *> daughtersOfJet,
                             std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
+                            std::map<std::string, std::array<std::array<float, 31>, 31> > &imgVars,
                             std::string frame, float mass){
-
-  //    using namespace std;
-  //    using namespace fastjet;
 
     // get 4 vector for heavy object rest frame
     typedef reco::Candidate::PolarLorentzVector fourv;
@@ -260,6 +258,7 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     std::vector<math::XYZVector> particles2;
     std::vector<reco::LeafCandidate> particles3;
     std::vector<fastjet::PseudoJet> FJparticles;
+    std::vector<TLorentzVector>* BoostedDaughters = new std::vector<TLorentzVector>;
 
     // 4 vectors to be filled with subjet additions
     TLorentzVector subjet12LV(0.,0.,0.,0.);
@@ -278,13 +277,15 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         // Create 4 vector to boost to Higgs frame
         TLorentzVector thisParticleLV( daughtersOfJet[i]->px(), daughtersOfJet[i]->py(), daughtersOfJet[i]->pz(), daughtersOfJet[i]->energy() );
 
-        // Boost to Higgs rest frame
+        // Boost to heavy object rest frame
         thisParticleLV.Boost( -thisJetLV.BoostVector() );
         jetVecVars[frame+"Frame_PF_candidate_px"].push_back(thisParticleLV.Px() );
         jetVecVars[frame+"Frame_PF_candidate_py"].push_back(thisParticleLV.Py() );
         jetVecVars[frame+"Frame_PF_candidate_pz"].push_back(thisParticleLV.Pz() );
         jetVecVars[frame+"Frame_PF_candidate_energy"].push_back(thisParticleLV.E() );
 
+        // Store candidate information for making the images
+        BoostedDaughters->push_back(thisParticleLV);
 
         // Now that PF candidates are stored, make the boost axis the Z-axis
         // Important for BES variables
@@ -302,6 +303,10 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         sumPz += thisParticleLV.Pz();
         sumP += abs( thisParticleLV.P() );
     }
+
+    // make the rest frame jet images
+    imgVars[frame+"Frame_image"] = boostedJetCamera(BoostedDaughters);
+    delete BoostedDaughters;
 
     // Fox Wolfram Moments
     double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
@@ -388,7 +393,10 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
 // Image = the container for the jet image -----------------------------------------------
 //----------------------------------------------------------------------------------------
 
-void boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters, float Image[31][31]){
+std::array<std::array<float, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters){
+
+    // create a place to store the image
+    std::array<std::array<float, 31>, 31> Image;
 
     //Sort the new list of particle flow candidates in the rest rame by energy
     auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
@@ -408,19 +416,19 @@ void boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters, float Image
     for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
 
         // sum energy
-        sumE+= thisParticleLV.E();
+        sumE+= icand->E();
 
         // rotate all candidates so that the leading candidate is in the x y plane
-        icand.RotateZ(-rotPhi);
+        icand->RotateZ(-rotPhi);
 
         // make sure the leading candidate has been fully rotated
-        if(candNum == 0) icand.SetPy(0);
+        if(candNum == 0) icand->SetPy(0);
 
         // rotate all candidates so that the leading candidate is on the x axis
-        icand.RotateY(TMath::Pi()/2.0 - leadTheta);
+        icand->RotateY(TMath::Pi()/2.0 - rotTheta);
 
         // make sure the leading candidate has been fully rotated
-        if(candNum == 0) icand.SetPz(0);
+        if(candNum == 0) icand->SetPz(0);
 
         candNum++;
     }
@@ -432,10 +440,10 @@ void boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters, float Image
     for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
 
         // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
-        icand.RotateX(subPsi - TMath::Pi()/2.0);
+        icand->RotateX(subPsi - TMath::Pi()/2.0);
 
         // make sure the leading candidate has been fully rotated
-        if(candNum == 1) icand.SetPz(0);
+        if(candNum == 1) icand->SetPz(0);
 
         candNum++;
     }
@@ -490,7 +498,7 @@ void boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters, float Image
         }
         Image[x_bin][y_bin] += icand->E()/sumE * 10 ;
     }
-    delete BoostedDaughters;
+    return Image;
 }
 
 

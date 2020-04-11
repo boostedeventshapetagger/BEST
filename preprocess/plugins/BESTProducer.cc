@@ -176,6 +176,8 @@ class BESTProducer : public edm::stream::EDProducer<> {
       std::vector<std::string> listOfVars;
       std::map<std::string, std::vector<float> > jetVecVars;
       std::vector<std::string> listOfVecVars;
+      std::map<std::string, std::array<std::array<float, 31>, 31> > imgVars;
+      std::vector<std::string> listOfImgVars;
 
       // Tokens
       //edm::EDGetTokenT<std::vector<pat::PackedCandidate> > pfCandsToken_;
@@ -415,6 +417,12 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     listOfVecVars.push_back("ZFrame_subjet_pz");
     listOfVecVars.push_back("ZFrame_subjet_energy");
 
+    // rest frame jet image variables
+    listOfImgVars.push_back("HiggsFrame_image");
+    listOfImgVars.push_back("TopFrame_image");
+    listOfImgVars.push_back("WFrame_image");
+    listOfImgVars.push_back("ZFrame_image");
+
     // Make Branches for each variable
     for (unsigned i = 0; i < listOfVars.size(); i++){
         treeVars[ listOfVars[i] ] = -999.99;
@@ -426,6 +434,11 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
         jetTree->Branch( (listOfVecVars[i]).c_str() , &(jetVecVars[ listOfVecVars[i] ]) );
     }
 
+    // Make branches for each of the images
+    for (unsigned i = 0; i < listOfImgVars.size(); i++){
+        jetTree->Branch( (listOfImgVars[i]).c_str() , &(imgVars[ listOfImgVars[i] ]) );
+    }
+
     //------------------------------------------------------------------------------
     // Define input tags -----------------------------------------------------------
     //------------------------------------------------------------------------------
@@ -433,7 +446,7 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     // AK8 Jets
     edm::InputTag ak8JetsTag_;
     ak8JetsTag_ = edm::InputTag("slimmedJetsAK8", "", "PAT");
-    //    ak8JetsTag_ = edm::InputTag(inputJetColl_, "", "run");
+    //    ak8JetsTag_ = edm::InputTag(inputJetColl_, "", "run"); // this may be needed as an option for 2016 mc
     ak8JetsToken_ = consumes<std::vector<pat::Jet> >(ak8JetsTag_);
 
     // Gen Particles
@@ -558,8 +571,8 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if (jetType_ !=0){
 	  for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
 	    // Check if jet matches any saved genParticle
-	    if(jet.DeltaR(genParticleToMatch[iGenParticle]) < 0.1){ 
-	      GenMatching = true; 
+	    if(jet.DeltaR(genParticleToMatch[iGenParticle]) < 0.1){
+	      GenMatching = true;
 	    }
 	  }
 	}
@@ -577,16 +590,16 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  getJetDaughters(daughtersOfJet, ijet, jetVecVars, jetColl_);
 	  if (daughtersOfJet.size() < 3) continue;
 	  // Higgs Rest Frame Variables
-	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Higgs", 125.);
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, imgVars, "Higgs", 125.);
 
 	  // Top Rest Frame Variables
-	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Top", 172.5);
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, imgVars, "Top", 172.5);
 
 	  // W Rest Frame Variables
-	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "W", 80.4);
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, imgVars, "W", 80.4);
 
 	  // Z Rest Frame Variables
-	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, "Z", 91.2);
+	  storeRestFrameVariables(treeVars, daughtersOfJet, ijet, jetVecVars, imgVars, "Z", 91.2);
 
 	  // Fill the jet entry tree
 	  jetTree->Fill();
@@ -601,6 +614,10 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
       for (unsigned i = 0; i < listOfVecVars.size(); i++){
 	jetVecVars[ listOfVecVars[i] ].clear();
+      }
+      for (unsigned i = 0; i < listOfImgVars.size(); i++){
+        // not sure how to reset the image variables or even if we will need to
+	//imgVars[ listOfImgVars[i] ]
       }
     }
 }
