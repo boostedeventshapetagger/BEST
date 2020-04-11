@@ -379,6 +379,121 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     treeVars["nSubjets_"+frame] = jetsFJ.size();
 }
 
+
+//========================================================================================
+// Boosted Jet Camera --------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+// Make the rest frame jet images that will be run through BEST --------------------------
+// BoostedDaughters = the lorentz vectores of the the jet PF candidates in the rest frame-
+// Image = the container for the jet image -----------------------------------------------
+//----------------------------------------------------------------------------------------
+
+void boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters, float Image[31][31]){
+
+    //Sort the new list of particle flow candidates in the rest rame by energy
+    auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
+    std::sort(BoostedDaughters->begin(), BoostedDaughters->end(), sortLambda);
+
+    //------------------------------------------------------------------------------------
+    // Rotations in the rest frame -------------------------------------------------------
+    //------------------------------------------------------------------------------------
+
+    // define the rotation angles for the first two rotations
+    float rotPhi = BoostedDaughters->begin()->Phi();
+    float rotTheta = BoostedDaughters->begin()->Theta();
+
+    // perform the first two rotations and sum energy
+    float sumE = 0;
+    float candNum = 0;
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+
+        // sum energy
+        sumE+= thisParticleLV.E();
+
+        // rotate all candidates so that the leading candidate is in the x y plane
+        icand.RotateZ(-rotPhi);
+
+        // make sure the leading candidate has been fully rotated
+        if(candNum == 0) icand.SetPy(0);
+
+        // rotate all candidates so that the leading candidate is on the x axis
+        icand.RotateY(TMath::Pi()/2.0 - leadTheta);
+
+        // make sure the leading candidate has been fully rotated
+        if(candNum == 0) icand.SetPz(0);
+
+        candNum++;
+    }
+
+    // create the rotation angle for the third rotation
+    float subPsi = TMath::ATan2(BoostedDaughters->at(1).Py(), BoostedDaughters->at(1).Pz());
+
+    candNum = 0;
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+
+        // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
+        icand.RotateX(subPsi - TMath::Pi()/2.0);
+
+        // make sure the leading candidate has been fully rotated
+        if(candNum == 1) icand.SetPz(0);
+
+        candNum++;
+    }
+
+    //Reflect if necessary
+    float rightSum = 0;
+    float leftSum = 0;
+    float topSum = 0;
+    float botSum = 0;
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+        if (icand->CosTheta() > 0){
+            topSum+=icand->E();
+        }
+        else if (icand->CosTheta() < 0){
+            botSum+=icand->E();
+        }
+
+        if (icand->Phi() > 0){
+            rightSum+=icand->E();
+        }
+        else if (icand->Phi() < 0){
+            leftSum+=icand->E();
+        }
+    }
+    //Initialize image with 0's in all bins
+    for (int nx = 0; nx < 31; nx++){
+        for (int ny= 0; ny < 31; ny++){
+            Image[nx][ny] = 0;
+        }
+    }
+    //find the x and y coordinates in phi, theta binned space
+    //Then fill Image with normalized energy
+
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+        int x_bin = -1;
+        int y_bin = -1;
+        if (topSum >= botSum){
+            x_bin = static_cast<int>(31*(icand->CosTheta() + 1)/(2.0));
+            x_bin = x_bin%31;
+        }
+        else{
+            x_bin = static_cast<int>(31*(-icand->CosTheta() + 1)/(2.0));
+            x_bin = x_bin%31;
+        }
+        if (rightSum >= leftSum){
+            y_bin = static_cast<int>(31*(icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
+            y_bin = y_bin%31;
+        }
+        else{
+            y_bin = static_cast<int>(31*(-icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
+            y_bin = y_bin%31;
+        }
+        Image[x_bin][y_bin] += icand->E()/sumE * 10 ;
+    }
+    delete BoostedDaughters;
+}
+
+
 //========================================================================================
 // Make boost axis the rest frame z axis -------------------------------------------------
 //----------------------------------------------------------------------------------------

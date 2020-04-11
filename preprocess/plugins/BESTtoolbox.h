@@ -51,6 +51,9 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
                              std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
                              std::string frame, float mass);
 
+// make the rest frame jet images
+void boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters, float Image[31][31]);
+
 // make rest frame z axis the boost axis
 void pboost( TVector3 pbeam, TVector3 plab, TLorentzVector &pboo );
 
