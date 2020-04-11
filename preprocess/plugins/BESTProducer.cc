@@ -436,7 +436,7 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
 
     // Make branches for each of the images
     for (unsigned i = 0; i < listOfImgVars.size(); i++){
-        jetTree->Branch( (listOfImgVars[i]).c_str() , &(imgVars[ listOfImgVars[i] ]) );
+        jetTree->Branch( (listOfImgVars[i]).c_str() , &(imgVars[ listOfImgVars[i] ]), (listOfImgVars[i]+"[31][31]/F").c_str() );
     }
 
     //------------------------------------------------------------------------------
