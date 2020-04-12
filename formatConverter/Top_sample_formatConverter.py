@@ -1,5 +1,5 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Zsample_formatConverter.py //////////////////////////////////////////////////////
+# Top_sample_formatConverter.py ///////////////////////////////////////////////////
 #==================================================================================
 # This program converts root ntuples to the python format necessar for training ///
 #==================================================================================
@@ -35,7 +35,7 @@ savePNG = True
 upTree = uproot.open("../preprocess/BESTInputs.root")["run/jetTree"]
 
 # make file to store the images and BES variables
-h5f = h5py.File("h5samples/ZSample_BESTinputs.h5","w")
+h5f = h5py.File("h5samples/TopSample_BESTinputs.h5","w")
 
 # make a data frame to store the images and BES variables
 jetDF = {}
@@ -76,15 +76,15 @@ print "show any NaNs", jetDF['BES_vars'].columns[jetDF['BES_vars'].isna().any()]
 # plot with python
 if plotJetImages == True:
    print "Plotting Average Boosted jet images"
-   img.plotAverageBoostedJetImage(jetDF['HiggsFrame_images'], 'ZSample_HiggsFrame', savePNG, savePDF)
-   img.plotAverageBoostedJetImage(jetDF['TopFrame_images'], 'ZSample_TopFrame', savePNG, savePDF)
-   img.plotAverageBoostedJetImage(jetDF['WFrame_images'], 'ZSample_WFrame', savePNG, savePDF)
-   img.plotAverageBoostedJetImage(jetDF['ZFrame_images'], 'ZSample_ZFrame', savePNG, savePDF)
+   img.plotAverageBoostedJetImage(jetDF['HiggsFrame_images'], 'TopSample_HiggsFrame', savePNG, savePDF)
+   img.plotAverageBoostedJetImage(jetDF['TopFrame_images'], 'TopSample_TopFrame', savePNG, savePDF)
+   img.plotAverageBoostedJetImage(jetDF['WFrame_images'], 'TopSample_WFrame', savePNG, savePDF)
+   img.plotAverageBoostedJetImage(jetDF['ZFrame_images'], 'TopSample_ZFrame', savePNG, savePDF)
 
-   img.plotThreeBoostedJetImages(jetDF['HiggsFrame_images'], 'ZSample_HiggsFrame', savePNG, savePDF)
-   img.plotThreeBoostedJetImages(jetDF['TopFrame_images'], 'ZSample_TopFrame', savePNG, savePDF)
-   img.plotThreeBoostedJetImages(jetDF['WFrame_images'], 'ZSample_WFrame', savePNG, savePDF)
-   img.plotThreeBoostedJetImages(jetDF['ZFrame_images'], 'ZSample_ZFrame', savePNG, savePDF)
+   img.plotThreeBoostedJetImages(jetDF['HiggsFrame_images'], 'TopSample_HiggsFrame', savePNG, savePDF)
+   img.plotThreeBoostedJetImages(jetDF['TopFrame_images'], 'TopSample_TopFrame', savePNG, savePDF)
+   img.plotThreeBoostedJetImages(jetDF['WFrame_images'], 'TopSample_WFrame', savePNG, savePDF)
+   img.plotThreeBoostedJetImages(jetDF['ZFrame_images'], 'TopSample_ZFrame', savePNG, savePDF)
 
 print "Mischief Managed!!!"
 
