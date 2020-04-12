@@ -74,7 +74,12 @@ print "Stored Boosted Event Shape variables"
 #jetDF['Cpp_images'] = upTree.pandas.df(["*Frame_image"])
 jetDF['Cpp_images'] = upTree.arrays()[b'HiggsFrame_image']
 
-print "Cpp Images: ", jetDF['Cpp_images']
+if jetDF['Cpp_images'].all() == jetDF['jet_images'].all() : print "The cpp and python jet images match!"
+
+elif jetDF['Cpp_images'].all() != jetDF['jet_images'].all() : 
+    print "ERROR: The cpp and python jet images do not match! Something must be wrong with one image making process"
+    print " 'I stand by what I said ... you would have done well in Slytherin'"
+    exit(1)
 
 #==================================================================================
 # Plot Jet Images /////////////////////////////////////////////////////////////////

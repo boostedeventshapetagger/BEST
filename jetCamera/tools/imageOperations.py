@@ -153,11 +153,11 @@ def boostedRotations(candArray):
       
         # Find subleading candidate
         if icand.E() > subleadE and icand.E() < leadE :
-            if abs( (icand.Phi() - leadLV.Phi() ) ) > 1.0 :
-                subleadE = icand.E()
-                # store its y z projection angle to Z axis (psi) for a third rotation
-                # arctan2 is very important
-                subPsi = np.arctan2(icand.Py(), icand.Pz() )
+            #if abs( (icand.Phi() - leadLV.Phi() ) ) > 1.0 : # this is to make sure the subleading candiate is not directly next to the leading candidate
+            subleadE = icand.E()
+            # store its y z projection angle to Z axis (psi) for a third rotation
+            # arctan2 is very important
+            subPsi = np.arctan2(icand.Py(), icand.Pz() )
  
     # Perform the third rotation
     for icand in candArray :
