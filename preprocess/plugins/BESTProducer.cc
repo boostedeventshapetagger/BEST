@@ -176,7 +176,7 @@ class BESTProducer : public edm::stream::EDProducer<> {
       std::vector<std::string> listOfVars;
       std::map<std::string, std::vector<float> > jetVecVars;
       std::vector<std::string> listOfVecVars;
-      std::map<std::string, std::array<std::array<float, 31>, 31> > imgVars;
+      std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > imgVars;
       std::vector<std::string> listOfImgVars;
 
       // Tokens
@@ -436,7 +436,7 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
 
     // Make branches for each of the images
     for (unsigned i = 0; i < listOfImgVars.size(); i++){
-        jetTree->Branch( (listOfImgVars[i]).c_str() , &(imgVars[ listOfImgVars[i] ]), (listOfImgVars[i]+"[31][31]/F").c_str() );
+        jetTree->Branch( (listOfImgVars[i]).c_str() , &(imgVars[ listOfImgVars[i] ]), (listOfImgVars[i]+"[31][31][1]/F").c_str() );
     }
 
     //------------------------------------------------------------------------------

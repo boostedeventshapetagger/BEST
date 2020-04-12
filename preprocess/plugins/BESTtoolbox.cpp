@@ -245,7 +245,7 @@ void storeSecVertexVariables(std::map<std::string, float> &treeVars,
 
 void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector<reco::Candidate *> daughtersOfJet,
                             std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
-                            std::map<std::string, std::array<std::array<float, 31>, 31> > &imgVars,
+                            std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
                             std::string frame, float mass){
 
     // get 4 vector for heavy object rest frame
@@ -393,10 +393,10 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
 // Image = the container for the jet image -----------------------------------------------
 //----------------------------------------------------------------------------------------
 
-std::array<std::array<float, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters){
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters){
 
     // create a place to store the image
-    std::array<std::array<float, 31>, 31> Image;
+    std::array<std::array<std::array<float, 1>, 31>, 31> Image;
 
     //Sort the new list of particle flow candidates in the rest rame by energy
     auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
@@ -471,7 +471,7 @@ std::array<std::array<float, 31>, 31> boostedJetCamera(std::vector<TLorentzVecto
     //Initialize image with 0's in all bins
     for (int nx = 0; nx < 31; nx++){
         for (int ny= 0; ny < 31; ny++){
-            Image[nx][ny] = 0;
+            Image[nx][ny][0] = 0;
         }
     }
     //find the x and y coordinates in phi, theta binned space
@@ -481,22 +481,22 @@ std::array<std::array<float, 31>, 31> boostedJetCamera(std::vector<TLorentzVecto
         int x_bin = -1;
         int y_bin = -1;
         if (topSum >= botSum){
-            x_bin = static_cast<int>(31*(icand->CosTheta() + 1)/(2.0));
-            x_bin = x_bin%31;
+            y_bin = static_cast<int>(31*(icand->CosTheta() + 1)/(2.0));
+            y_bin = y_bin%31;
         }
         else{
-            x_bin = static_cast<int>(31*(-icand->CosTheta() + 1)/(2.0));
-            x_bin = x_bin%31;
+            y_bin = static_cast<int>(31*(-icand->CosTheta() + 1)/(2.0));
+            y_bin = y_bin%31;
         }
         if (rightSum >= leftSum){
-            y_bin = static_cast<int>(31*(icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
-            y_bin = y_bin%31;
+            x_bin = static_cast<int>(31*(icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
+            x_bin = x_bin%31;
         }
         else{
-            y_bin = static_cast<int>(31*(-icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
-            y_bin = y_bin%31;
+            x_bin = static_cast<int>(31*(-icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
+            x_bin = x_bin%31;
         }
-        Image[x_bin][y_bin] += icand->E()/sumE * 10 ;
+        Image[x_bin][y_bin][0] += icand->E()/sumE * 10 ;
     }
     return Image;
 }

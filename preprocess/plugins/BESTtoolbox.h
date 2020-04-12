@@ -49,11 +49,11 @@ void storeSecVertexVariables(std::map<std::string, float> &treeVars, std::map< s
 // store the rest frame variables
 void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector<reco::Candidate *> daughtersOfJet,
                              std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
-                             std::map<std::string, std::array<std::array<float, 31>, 31> > &imgVars,
+                             std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
                              std::string frame, float mass);
 
 // make the rest frame jet images
-std::array<std::array<float, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters);
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters);
 
 // make rest frame z axis the boost axis
 void pboost( TVector3 pbeam, TVector3 plab, TLorentzVector &pboo );
