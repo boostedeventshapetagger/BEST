@@ -103,8 +103,8 @@ BEST_jetCamera:
     - cd camera/${CMSSW_RELEASE}/src/BEST
     - cmsenv
     # copy files for BEST
-    - cd jetCamera
-    - mkdir images
+    - cd formatConverter
+    - mkdir h5samples
     - mkdir plots
     - python test_boost_jetImageCreator.py
     
