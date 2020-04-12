@@ -46,7 +46,7 @@ h5f = h5py.File("images/TestBoostedJetImages.h5","w")
 # make a data frame to store the images
 jetDF = {}
 
-# make boosted jet images
+# make boosted jet images in the pythonic way for comparison with c++ images
 #print "Starting with the Higgs Frame"
 img.boostedJetPhotoshoot(upTree, "Higgs", 31, h5f, jetDF)
 
@@ -68,6 +68,15 @@ print "Stored Boosted Event Shape variables"
 #pr.print_stats(sort='time')
 
 #==================================================================================
+# Get C++ images for comparison ---------------------------------------------------
+#==================================================================================
+
+#jetDF['Cpp_images'] = upTree.pandas.df(["*Frame_image"])
+jetDF['Cpp_images'] = upTree.arrays()[b'HiggsFrame_image']
+
+print "Cpp Images: ", jetDF['Cpp_images']
+
+#==================================================================================
 # Plot Jet Images /////////////////////////////////////////////////////////////////
 #==================================================================================
 
@@ -75,8 +84,10 @@ print "Stored Boosted Event Shape variables"
 if plotJetImages == True:
    print "Plotting Average Boosted jet images"
    img.plotAverageBoostedJetImage(jetDF['jet_images'], 'boost_Test', savePNG, savePDF)
+   img.plotAverageBoostedJetImage(jetDF['Cpp_images'], 'cpp_Test', savePNG, savePDF)
 
    img.plotThreeBoostedJetImages(jetDF['jet_images'], 'boost_Test', savePNG, savePDF)
+   img.plotThreeBoostedJetImages(jetDF['Cpp_images'], 'cpp_Test', savePNG, savePDF)
 
    img.plotMolleweideBoostedJetImage(jetDF['jet_images'], 'boost_Test', 31, savePNG, savePDF)
 
