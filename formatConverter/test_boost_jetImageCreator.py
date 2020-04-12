@@ -41,7 +41,7 @@ upTree = uproot.open("../preprocess/BESTInputs.root")["run/jetTree"]
 #upTree = uproot.open("../preprocess/preprocess_BEST_ZZ.root")["run/jetTree"]
 
 # make file to store the images and BES variables
-h5f = h5py.File("images/TestBoostedJetImages.h5","w")
+h5f = h5py.File("h5samples/TestBoostedJetImages.h5","w")
 
 # make a data frame to store the images
 jetDF = {}
@@ -58,7 +58,11 @@ jetDF['BES_vars'] = upTree.pandas.df(["jetAK8_phi", "jetAK8_eta", "nSecondaryVer
                                        "FoxWolfram*",  "isotropy*", "aplanarity*", "thrust*", "subjet*mass*",
                                        "asymmetry*"])
                                        
-print "show any NaNs", jetDF['BES_vars'].columns[jetDF['BES_vars'].isna().any()].tolist()
+if len(jetDF['BES_vars'].columns[jetDF['BES_vars'].isna().any()].tolist()) > 0:
+    print "ERROR: NaNs are appearing in BES Variables"
+    print "show any NaNs", jetDF['BES_vars'].columns[jetDF['BES_vars'].isna().any()].tolist()
+    exit(1)
+
 
 h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], compression='lzf')
 print "Stored Boosted Event Shape variables"
