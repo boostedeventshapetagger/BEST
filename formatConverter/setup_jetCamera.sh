@@ -42,9 +42,9 @@ then
     mkdir ./plots
 fi
 
-if [ ! -e ./images ]
+if [ ! -e ./h5samples ]
 then
-    mkdir ./images
+    mkdir ./h5samples
 fi
 
 # set venv path
