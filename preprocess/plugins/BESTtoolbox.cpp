@@ -344,20 +344,25 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         // get subjet four vector combinations
         switch(i){
         case 0:
-            subjet12LV   = subjet12LV   + iSubjetLV;
-            subjet13LV   = subjet13LV   + iSubjetLV;
-            subjet1234LV = subjet1234LV + iSubjetLV;
+	  //            subjet12LV   = subjet12LV   + iSubjetLV;
+	  //            subjet13LV   = subjet13LV   + iSubjetLV;
+	  //            subjet1234LV = subjet1234LV + iSubjetLV;
+            subjet12LV   = iSubjetLV;
+            subjet13LV   = iSubjetLV;
+            subjet1234LV = iSubjetLV;
+
             break;
         case 1:
-	  treeVars["subjet12_DeltaCosTheta_"+frame]   = subjet12LV.CosTheta() - iSubjetLV.CosTheta();
+	  treeVars["subjet12_DeltaCosTheta_"+frame]   = (subjet12LV.Vect()).Dot(iSubjetLV.Vect()) / (subjet12LV.Vect().Mag() * iSubjetLV.Vect().Mag());
             subjet12LV   = subjet12LV   + iSubjetLV;
-            subjet23LV   = subjet23LV   + iSubjetLV;
+	    //            subjet23LV   = subjet23LV   + iSubjetLV;
+            subjet23LV   = iSubjetLV;
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
         case 2:
-	  treeVars["subjet13_DeltaCosTheta_"+frame]   = subjet13LV.CosTheta() - iSubjetLV.CosTheta();
+	  treeVars["subjet13_DeltaCosTheta_"+frame]   = (subjet13LV.Vect()).Dot(iSubjetLV.Vect()) / (subjet13LV.Vect().Mag() * iSubjetLV.Vect().Mag());
             subjet13LV   = subjet13LV   + iSubjetLV;
-	    treeVars["subjet23_DeltaCosTheta_"+frame]   = subjet23LV.CosTheta() - iSubjetLV.CosTheta();
+	    treeVars["subjet23_DeltaCosTheta_"+frame]   = (subjet23LV.Vect()).Dot(iSubjetLV.Vect()) / (subjet23LV.Vect().Mag() * iSubjetLV.Vect().Mag());
             subjet23LV   = subjet23LV   + iSubjetLV;
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
