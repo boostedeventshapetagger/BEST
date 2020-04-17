@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'ZprimeWW_2TeV_trees'
+config.General.requestName = 'ZprimeWW_6TeV_trees'
 config.General.workArea = 'CrabBEST'
 config.General.transferLogs = True
 
@@ -14,7 +14,7 @@ config.JobType.outputFiles = ['BESTInputs.root']
 #config.JobType.allowUndistributedCMSSW = True
 
 config.section_("Data")
-config.Data.inputDataset = '/ZprimeToWW_narrow_M-2000_13TeV-madgraph/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM'
+config.Data.inputDataset = '/ZprimeToWW_narrow_M-6000_TuneCP5_13TeV-madgraph/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.ignoreLocality = True
