@@ -41,7 +41,7 @@ BEST_compile:
     - cmsenv
     # copy files for BEST
     - mkdir -p BEST
-    - cp -r "${CI_PROJECT_DIR}/jetCamera" "${CMSSW_BASE}/src/BEST"
+    - cp -r "${CI_PROJECT_DIR}/formatConverter" "${CMSSW_BASE}/src/BEST"
     - cp -r "${CI_PROJECT_DIR}/preprocess" "${CMSSW_BASE}/src/BEST"
     - cp -r "${CI_PROJECT_DIR}/training" "${CMSSW_BASE}/src/BEST"
     # compile
@@ -103,8 +103,8 @@ BEST_jetCamera:
     - cd camera/${CMSSW_RELEASE}/src/BEST
     - cmsenv
     # copy files for BEST
-    - cd jetCamera
-    - mkdir images
+    - cd formatConverter
+    - mkdir h5samples
     - mkdir plots
     - python test_boost_jetImageCreator.py
     

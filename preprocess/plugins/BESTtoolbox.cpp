@@ -245,10 +245,8 @@ void storeSecVertexVariables(std::map<std::string, float> &treeVars,
 
 void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector<reco::Candidate *> daughtersOfJet,
                             std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
+                            std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
                             std::string frame, float mass){
-
-  //    using namespace std;
-  //    using namespace fastjet;
 
     // get 4 vector for heavy object rest frame
     typedef reco::Candidate::PolarLorentzVector fourv;
@@ -260,6 +258,7 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     std::vector<math::XYZVector> particles2;
     std::vector<reco::LeafCandidate> particles3;
     std::vector<fastjet::PseudoJet> FJparticles;
+    std::vector<TLorentzVector>* BoostedDaughters = new std::vector<TLorentzVector>;
 
     // 4 vectors to be filled with subjet additions
     TLorentzVector subjet12LV(0.,0.,0.,0.);
@@ -278,13 +277,15 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         // Create 4 vector to boost to Higgs frame
         TLorentzVector thisParticleLV( daughtersOfJet[i]->px(), daughtersOfJet[i]->py(), daughtersOfJet[i]->pz(), daughtersOfJet[i]->energy() );
 
-        // Boost to Higgs rest frame
+        // Boost to heavy object rest frame
         thisParticleLV.Boost( -thisJetLV.BoostVector() );
         jetVecVars[frame+"Frame_PF_candidate_px"].push_back(thisParticleLV.Px() );
         jetVecVars[frame+"Frame_PF_candidate_py"].push_back(thisParticleLV.Py() );
         jetVecVars[frame+"Frame_PF_candidate_pz"].push_back(thisParticleLV.Pz() );
         jetVecVars[frame+"Frame_PF_candidate_energy"].push_back(thisParticleLV.E() );
 
+        // Store candidate information for making the images
+        BoostedDaughters->push_back(thisParticleLV);
 
         // Now that PF candidates are stored, make the boost axis the Z-axis
         // Important for BES variables
@@ -302,6 +303,10 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         sumPz += thisParticleLV.Pz();
         sumP += abs( thisParticleLV.P() );
     }
+
+    // make the rest frame jet images
+    imgVars[frame+"Frame_image"] = boostedJetCamera(BoostedDaughters);
+    delete BoostedDaughters;
 
     // Fox Wolfram Moments
     double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
@@ -344,20 +349,25 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
         // get subjet four vector combinations
         switch(i){
         case 0:
-            subjet12LV   = subjet12LV   + iSubjetLV;
-            subjet13LV   = subjet13LV   + iSubjetLV;
-            subjet1234LV = subjet1234LV + iSubjetLV;
+	  //            subjet12LV   = subjet12LV   + iSubjetLV;
+	  //            subjet13LV   = subjet13LV   + iSubjetLV;
+	  //            subjet1234LV = subjet1234LV + iSubjetLV;
+            subjet12LV   = iSubjetLV;
+            subjet13LV   = iSubjetLV;
+            subjet1234LV = iSubjetLV;
+
             break;
         case 1:
-	  treeVars["subjet12_DeltaCosTheta_"+frame]   = subjet12LV.CosTheta() - iSubjetLV.CosTheta();
+	  treeVars["subjet12_DeltaCosTheta_"+frame]   = (subjet12LV.Vect()).Dot(iSubjetLV.Vect()) / (subjet12LV.Vect().Mag() * iSubjetLV.Vect().Mag());
             subjet12LV   = subjet12LV   + iSubjetLV;
-            subjet23LV   = subjet23LV   + iSubjetLV;
+	    //            subjet23LV   = subjet23LV   + iSubjetLV;
+            subjet23LV   = iSubjetLV;
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
         case 2:
-	  treeVars["subjet13_DeltaCosTheta_"+frame]   = subjet13LV.CosTheta() - iSubjetLV.CosTheta();
+	  treeVars["subjet13_DeltaCosTheta_"+frame]   = (subjet13LV.Vect()).Dot(iSubjetLV.Vect()) / (subjet13LV.Vect().Mag() * iSubjetLV.Vect().Mag());
             subjet13LV   = subjet13LV   + iSubjetLV;
-	    treeVars["subjet23_DeltaCosTheta_"+frame]   = subjet23LV.CosTheta() - iSubjetLV.CosTheta();
+	    treeVars["subjet23_DeltaCosTheta_"+frame]   = (subjet23LV.Vect()).Dot(iSubjetLV.Vect()) / (subjet23LV.Vect().Mag() * iSubjetLV.Vect().Mag());
             subjet23LV   = subjet23LV   + iSubjetLV;
             subjet1234LV = subjet1234LV + iSubjetLV;
             break;
@@ -378,6 +388,124 @@ void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector
     treeVars["subjet1234_CosTheta_"+frame] = subjet1234LV.CosTheta();
     treeVars["nSubjets_"+frame] = jetsFJ.size();
 }
+
+
+//========================================================================================
+// Boosted Jet Camera --------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+// Make the rest frame jet images that will be run through BEST --------------------------
+// BoostedDaughters = the lorentz vectores of the the jet PF candidates in the rest frame-
+// Image = the container for the jet image -----------------------------------------------
+//----------------------------------------------------------------------------------------
+
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters){
+
+    // create a place to store the image
+    std::array<std::array<std::array<float, 1>, 31>, 31> Image;
+
+    //Sort the new list of particle flow candidates in the rest rame by energy
+    auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
+    std::sort(BoostedDaughters->begin(), BoostedDaughters->end(), sortLambda);
+
+    //------------------------------------------------------------------------------------
+    // Rotations in the rest frame -------------------------------------------------------
+    //------------------------------------------------------------------------------------
+
+    // define the rotation angles for the first two rotations
+    float rotPhi = BoostedDaughters->begin()->Phi();
+    float rotTheta = BoostedDaughters->begin()->Theta();
+
+    // perform the first two rotations and sum energy
+    float sumE = 0;
+    float candNum = 0;
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+
+        // sum energy
+        sumE+= icand->E();
+
+        // rotate all candidates so that the leading candidate is in the x y plane
+        icand->RotateZ(-rotPhi);
+
+        // make sure the leading candidate has been fully rotated
+        if(candNum == 0) icand->SetPy(0);
+
+        // rotate all candidates so that the leading candidate is on the x axis
+        icand->RotateY(TMath::Pi()/2.0 - rotTheta);
+
+        // make sure the leading candidate has been fully rotated
+        if(candNum == 0) icand->SetPz(0);
+
+        candNum++;
+    }
+
+    // create the rotation angle for the third rotation
+    float subPsi = TMath::ATan2(BoostedDaughters->at(1).Py(), BoostedDaughters->at(1).Pz());
+
+    candNum = 0;
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+
+        // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
+        icand->RotateX(subPsi - TMath::Pi()/2.0);
+
+        // make sure the leading candidate has been fully rotated
+        if(candNum == 1) icand->SetPz(0);
+
+        candNum++;
+    }
+
+    //Reflect if necessary
+    float rightSum = 0;
+    float leftSum = 0;
+    float topSum = 0;
+    float botSum = 0;
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+        if (icand->CosTheta() > 0){
+            topSum+=icand->E();
+        }
+        else if (icand->CosTheta() < 0){
+            botSum+=icand->E();
+        }
+
+        if (icand->Phi() > 0){
+            rightSum+=icand->E();
+        }
+        else if (icand->Phi() < 0){
+            leftSum+=icand->E();
+        }
+    }
+    //Initialize image with 0's in all bins
+    for (int nx = 0; nx < 31; nx++){
+        for (int ny= 0; ny < 31; ny++){
+            Image[nx][ny][0] = 0;
+        }
+    }
+    //find the x and y coordinates in phi, theta binned space
+    //Then fill Image with normalized energy
+
+    for(auto icand = BoostedDaughters->begin(); icand != BoostedDaughters->end(); icand++){
+        int x_bin = -1;
+        int y_bin = -1;
+        if (topSum >= botSum){
+            y_bin = static_cast<int>(31*(icand->CosTheta() + 1)/(2.0));
+            y_bin = y_bin%31;
+        }
+        else{
+            y_bin = static_cast<int>(31*(-icand->CosTheta() + 1)/(2.0));
+            y_bin = y_bin%31;
+        }
+        if (rightSum >= leftSum){
+            x_bin = static_cast<int>(31*(icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
+            x_bin = x_bin%31;
+        }
+        else{
+            x_bin = static_cast<int>(31*(-icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
+            x_bin = x_bin%31;
+        }
+        Image[x_bin][y_bin][0] += icand->E()/sumE * 10 ;
+    }
+    return Image;
+}
+
 
 //========================================================================================
 // Make boost axis the rest frame z axis -------------------------------------------------
