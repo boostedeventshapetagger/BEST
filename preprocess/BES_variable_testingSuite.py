@@ -71,10 +71,10 @@ indWPF = treeVars.index('WFrame_PF_candidate_energy')
 indZPF = treeVars.index('ZFrame_PF_candidate_energy')
 
 # get the jet energy indicies
-indHsub = treeVars.index('HiggsFrame_subjet_energy')
-indTsub = treeVars.index('TopFrame_subjet_energy')
-indWsub = treeVars.index('WFrame_subjet_energy')
-indZsub = treeVars.index('ZFrame_subjet_energy')
+indHsub = treeVars.index('HiggsFrame_jet_energy')
+indTsub = treeVars.index('TopFrame_jet_energy')
+indWsub = treeVars.index('WFrame_jet_energy')
+indZsub = treeVars.index('ZFrame_jet_energy')
 
 # get foxwolfram indicies
 indFoxWolf = [index for index, value in enumerate(treeVars) if "FoxWolf" in value]
