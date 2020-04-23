@@ -265,8 +265,8 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     }
 
     // make the rest frame jet images
-    boostedDaughters[frame+"Frame"] = boostedCands;
     imgVars[frame+"Frame_image"] = boostedJetCamera(boostedCands);
+    boostedDaughters[frame+"Frame"] = boostedCands;
 
     // Fox Wolfram Moments
     double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
@@ -375,15 +375,17 @@ void storeJetDaughters(std::vector<reco::Candidate * > daughtersOfJet, std::vect
             pat::PackedCandidate *iparticle = (pat::PackedCandidate *) daughtersOfJet[i];
 	    if(!iparticle){
 	      std::cout<<"ERROR: The PF candidate did not get properly converted to PackedCandidate"<<std::endl;
-	      std::cout<<"'Transfiguration is some of the most dangerous and complex magic!'"<<std::endl;
+	      std::cout<<" 'Transfiguration is some of the most dangerous and complex magic!'"<<std::endl;
 	      exit(1);
 	    }
             jetVecVars["PUPPI_weights"].push_back( iparticle->puppiWeight() );
         }
     }
 
+
     // loop over rest frames
-    for(unsigned int iFrame; iFrame < frames.size(); iFrame++){
+    for(unsigned int iFrame = 0; iFrame < frames.size(); iFrame++){
+
         std::string frame = frames[iFrame];
 
         // loop over candidates in the rest frame
