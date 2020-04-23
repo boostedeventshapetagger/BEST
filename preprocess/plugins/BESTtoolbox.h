@@ -36,24 +36,30 @@ float LegendreP(float x, int order);
 int FWMoments(std::vector<TLorentzVector> particles, double (&outputs)[5] );
 
 // get jet's constituents
-void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vector<pat::Jet>::const_iterator jet,
-                     std::map<std::string, std::vector<float> > &jetVecVars, int jetColl );
+void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vector<pat::Jet>::const_iterator jet);
 
 // store the jet variables
-void storeJetVariables(std::map<std::string, float> &treeVars, std::vector<pat::Jet>::const_iterator jet, int jetColl);
+void storeJetVariables(std::map<std::string, float> &besVars, std::vector<pat::Jet>::const_iterator jet, int jetColl);
 
 // store the secondary vertex variables
-void storeSecVertexVariables(std::map<std::string, float> &treeVars, std::map< std::string, std::vector<float> > &jetVecVars,
+void storeSecVertexVariables(std::map<std::string, float> &besVars, std::map< std::string, std::vector<float> > &jetVecVars,
                              TLorentzVector jet, std::vector<reco::VertexCompositePtrCandidate> secVertices);
 
-// store the rest frame variables
-void storeRestFrameVariables(std::map<std::string, float> &treeVars, std::vector<reco::Candidate *> daughtersOfJet,
-                             std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<float> > &jetVecVars,
-                             std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
-                             std::string frame, float mass);
+// calculate the rest frame variables
+void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> daughtersOfJet,
+                      std::map<std::string, std::vector<TLorentzVector>* > &boostedDaughters,
+                      std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<fastjet::PseudoJet> > &restJets,
+                      std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
+                      std::string frame, float mass);
+
+// store the daughters, rest frame daughters, and rest frame jets
+void storeJetDaughters(std::vector<reco::Candidate * > daughtersOfJet, std::vector<pat::Jet>::const_iterator jet,
+                       std::map<std::string, std::vector<TLorentzVector>* > boostedDaughters,
+                       std::map<std::string, std::vector<fastjet::PseudoJet> > restJets, std::vector<std::string> frames,
+                       std::map<std::string, std::vector<float> > &jetVecVars, int jetColl );
 
 // make the rest frame jet images
-std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* BoostedDaughters);
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* boostedCands);
 
 // make rest frame z axis the boost axis
 void pboost( TVector3 pbeam, TVector3 plab, TLorentzVector &pboo );

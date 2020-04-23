@@ -57,7 +57,8 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('slimmedJetsAK8'),
         jetColl = cms.string('PUPPI'),                     
-        jetType = cms.string('W')
+        jetType = cms.string('W'),
+        storeDaughters = cms.bool(True)
 )
 process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 
