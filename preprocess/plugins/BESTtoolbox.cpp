@@ -224,7 +224,7 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     std::vector<fastjet::PseudoJet> FJparticles;
     std::vector<TLorentzVector>* boostedCands = new std::vector<TLorentzVector>;
 
-    // 4 vectors to be filled with subjet additions
+    // 4 vectors to be filled with reclustered jet additions
     TLorentzVector jet12LV(0.,0.,0.,0.);
     TLorentzVector jet13LV(0.,0.,0.,0.);
     TLorentzVector jet23LV(0.,0.,0.,0.);
@@ -315,16 +315,16 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
 
             break;
         case 1:
-	  treeVars["jet12_DeltaCosTheta_"+frame]   = (jet12LV.Vect()).Dot(iJetLV.Vect()) / (jet12LV.Vect().Mag() * iJetLV.Vect().Mag());
+	  besVars["jet12_DeltaCosTheta_"+frame]   = (jet12LV.Vect()).Dot(iJetLV.Vect()) / (jet12LV.Vect().Mag() * iJetLV.Vect().Mag());
             jet12LV   = jet12LV   + iJetLV;
 	    //            jet23LV   = jet23LV   + iJetLV;
             jet23LV   = iJetLV;
             jet1234LV = jet1234LV + iJetLV;
             break;
         case 2:
-	  treeVars["jet13_DeltaCosTheta_"+frame]   = (jet13LV.Vect()).Dot(ijetLV.Vect()) / (jet13LV.Vect().Mag() * iJetLV.Vect().Mag());
+	  besVars["jet13_DeltaCosTheta_"+frame]   = (jet13LV.Vect()).Dot(iJetLV.Vect()) / (jet13LV.Vect().Mag() * iJetLV.Vect().Mag());
             jet13LV   = jet13LV   + iJetLV;
-	    treeVars["jet23_DeltaCosTheta_"+frame]   = (jet23LV.Vect()).Dot(ijetLV.Vect()) / (jet23LV.Vect().Mag() * iJetLV.Vect().Mag());
+	    besVars["jet23_DeltaCosTheta_"+frame]   = (jet23LV.Vect()).Dot(iJetLV.Vect()) / (jet23LV.Vect().Mag() * iJetLV.Vect().Mag());
             jet23LV   = jet23LV   + iJetLV;
             jet1234LV = jet1234LV + iJetLV;
             break;
@@ -334,7 +334,7 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
         }
     }
 
-    // Store subjet mass combinations
+    // Store reclustered jet mass combinations
     besVars["jet12_mass_"+frame]   = jet12LV.M();
     besVars["jet13_mass_"+frame]   = jet13LV.M();
     besVars["jet23_mass_"+frame]   = jet23LV.M();
