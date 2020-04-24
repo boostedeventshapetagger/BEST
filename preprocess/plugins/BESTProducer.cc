@@ -239,7 +239,7 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
 
     // Vertex Variables
     listOfVars.push_back("nSecondaryVertices");
-    listOfVecVars.push_back("SV_pt");
+    listOfVecVars.push_back("SV_pt"); // Possible bug!
     listOfVecVars.push_back("SV_eta");
     listOfVecVars.push_back("SV_phi");
     listOfVecVars.push_back("SV_mass");
@@ -437,7 +437,7 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
 
     // Make Branches for each of the jet constituents' variables
     for (unsigned i = 0; i < listOfVecVars.size(); i++){
-        jetTree->Branch( (listOfVecVars[i]).c_str() , &(jetVecVars[ listOfVecVars[i] ]) );
+      jetTree->Branch( (listOfVecVars[i]).c_str() , &(jetVecVars[ listOfVecVars[i] ]) ); //Possible bug!
     }
 
     // Make branches for each of the images
@@ -567,17 +567,25 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // This loop makes a tree entry for each jet of interest -----------------------
     //------------------------------------------------------------------------------
 
+    // Create structures for storing daughters and rest frame jets
+    vector<reco::Candidate * > daughtersOfJet;
+    map<string, vector<TLorentzVector> > boostedDaughters;
+    map<string, vector<fastjet::PseudoJet> > restJets;
+		
     for (vector<pat::Jet>::const_iterator jetBegin = ak8Jets.begin(), jetEnd = ak8Jets.end(), ijet = jetBegin; ijet != jetEnd; ++ijet){
         bool GenMatching = false;
+	daughtersOfJet.clear();
+	boostedDaughters.clear();
+	restJets.clear();
         TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-
+	
         if(ijet->subjets("SoftDropPuppi").size() >=2 && ijet->numberOfDaughters() > 2 && ijet->pt() >= 500 && fabs(ijet->eta()) < 2.4 &&ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10) {
 
             // gen particle loop, only relevant for non-QCD jets
-            if (jetType_ !=0){
-                for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
-                    // Check if jet matches any saved genParticle
-                    if(jet.DeltaR(genParticleToMatch[iGenParticle]) < 0.1){
+	    if (jetType_ !=0){
+	        for (size_t iGenParticle = 0; iGenParticle < genParticleToMatch.size(); iGenParticle++){
+		    // Check if jet matches any saved genParticle
+		    if(jet.DeltaR(genParticleToMatch[iGenParticle]) < 0.1){
                         GenMatching = true;
                     }
                 }
@@ -590,11 +598,6 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                 // Secondary Vertex Variables
                 storeSecVertexVariables(treeVars, jetVecVars, jet, secVertices);
-
-                // Create structures for storing daughters and rest frame jets
-                vector<reco::Candidate * > daughtersOfJet;
-                map<string, vector<TLorentzVector>* > boostedDaughters;
-                map<string, vector<fastjet::PseudoJet> > restJets;
 
                 // Get all of the Jet's daughters
                 getJetDaughters(daughtersOfJet, ijet);
@@ -620,24 +623,33 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
                 // Fill the jet entry tree
                 jetTree->Fill();
-
             }
-          }
+	}
 
-          //-------------------------------------------------------------------------------
-          // Clear and Reset all tree variables -------------------------------------------
-          //-------------------------------------------------------------------------------
-          for (unsigned i = 0; i < listOfVars.size(); i++){
-            treeVars[ listOfVars[i] ] = -999.99;
-          }
-          for (unsigned i = 0; i < listOfVecVars.size(); i++){
-            jetVecVars[ listOfVecVars[i] ].clear();
-          }
-          for (unsigned i = 0; i < listOfImgVars.size(); i++){
-            // not sure how to reset the image variables or even if we will need to
-            //imgVars[ listOfImgVars[i] ]
-          }
-      }
+	//-------------------------------------------------------------------------------
+	// Clear and Reset all tree variables -------------------------------------------
+	//-------------------------------------------------------------------------------
+	for (unsigned i = 0; i < listOfVars.size(); i++){
+	    treeVars[ listOfVars[i] ] = -999.99;
+	}
+	for (unsigned i = 0; i < listOfVecVars.size(); i++){
+	    jetVecVars[ listOfVecVars[i] ].clear();
+	}
+	/*
+	for (unsigned i = 0; i < listOfImgVars.size(); i++){
+	    for (unsigned j = 0; j < imgVars[ listOfImgVars[i] ].size(); j++) {
+	        for (unsigned k = 0; k < imgVars[ listOfImgVars[i] ][j].size(); k++) {
+	            imgVars[ listOfImgVars[i] ][j][k].clear();
+		}
+	    }
+	}
+	*/
+    }
+    
+    // Delete vector
+    daughtersOfJet.clear();
+    boostedDaughters.clear();
+    restJets.clear();
 }
 
 
