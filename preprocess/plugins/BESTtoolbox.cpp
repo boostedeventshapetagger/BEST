@@ -206,8 +206,8 @@ void storeSecVertexVariables(std::map<std::string, float> &besVars,
 // and assymmetry variables --------------------------------------------------------------
 //----------------------------------------------------------------------------------------
 
-void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> daughtersOfJet,
-                      std::map<std::string, std::vector<TLorentzVector>* > &boostedDaughters,
+void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> &daughtersOfJet,
+                      std::map<std::string, std::vector<TLorentzVector> > &boostedDaughters,
                       std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<fastjet::PseudoJet> > &restJets,
                       std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
                       std::string frame, float mass){
@@ -222,7 +222,7 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     std::vector<math::XYZVector> particles2;
     std::vector<reco::LeafCandidate> particles3;
     std::vector<fastjet::PseudoJet> FJparticles;
-    std::vector<TLorentzVector>* boostedCands = new std::vector<TLorentzVector>;
+    std::vector<TLorentzVector> boostedCands; // Possible bug! = new std::vector<TLorentzVector>;
 
     // 4 vectors to be filled with reclustered jet additions
     TLorentzVector jet12LV(0.,0.,0.,0.);
@@ -245,7 +245,7 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
         thisParticleLV.Boost( -thisJetLV.BoostVector() );
 
         // Store candidate information for making the images
-        boostedCands->push_back(thisParticleLV);
+        boostedCands.push_back(thisParticleLV);
 
         // Now that PF candidates are stored, make the boost axis the Z-axis
         // Important for BES variables
@@ -265,8 +265,8 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     }
 
     // make the rest frame jet images
-    imgVars[frame+"Frame_image"] = boostedJetCamera(boostedCands);
     boostedDaughters[frame+"Frame"] = boostedCands;
+    imgVars[frame+"Frame_image"] = boostedJetCamera(boostedCands);
 
     // Fox Wolfram Moments
     double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
@@ -353,9 +353,9 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
 //  variables can be used in training BEST -----------------------------------------------
 //----------------------------------------------------------------------------------------
 
-void storeJetDaughters(std::vector<reco::Candidate * > daughtersOfJet, std::vector<pat::Jet>::const_iterator jet,
-                       std::map<std::string, std::vector<TLorentzVector>* > boostedDaughters,
-                       std::map<std::string, std::vector<fastjet::PseudoJet> > restJets, std::vector<std::string> frames,
+void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vector<pat::Jet>::const_iterator jet,
+                       std::map<std::string, std::vector<TLorentzVector> > &boostedDaughters,
+                       std::map<std::string, std::vector<fastjet::PseudoJet> > &restJets, std::vector<std::string> frames,
                        std::map<std::string, std::vector<float> > &jetVecVars, int jetColl ){
 
     // loop over lab frame candidates
@@ -389,7 +389,7 @@ void storeJetDaughters(std::vector<reco::Candidate * > daughtersOfJet, std::vect
         std::string frame = frames[iFrame];
 
         // loop over candidates in the rest frame
-        for(auto icand = boostedDaughters[frame+"Frame"]->begin(); icand != boostedDaughters[frame+"Frame"]->end(); icand++){
+        for(auto icand = boostedDaughters[frame+"Frame"].begin(); icand != boostedDaughters[frame+"Frame"].end(); icand++){
 
             // store the rest frame candidate
             jetVecVars[frame+"Frame_PF_candidate_px"].push_back(icand->Px() );
@@ -421,27 +421,27 @@ void storeJetDaughters(std::vector<reco::Candidate * > daughtersOfJet, std::vect
 // Image = the container for the jet image -----------------------------------------------
 //----------------------------------------------------------------------------------------
 
-std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector>* boostedCands){
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands){
 
     // create a place to store the image
     std::array<std::array<std::array<float, 1>, 31>, 31> Image;
 
     //Sort the new list of particle flow candidates in the rest rame by energy
     auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
-    std::sort(boostedCands->begin(), boostedCands->end(), sortLambda);
+    std::sort(boostedCands.begin(), boostedCands.end(), sortLambda);
 
     //------------------------------------------------------------------------------------
     // Rotations in the rest frame -------------------------------------------------------
     //------------------------------------------------------------------------------------
 
     // define the rotation angles for the first two rotations
-    float rotPhi = boostedCands->begin()->Phi();
-    float rotTheta = boostedCands->begin()->Theta();
+    float rotPhi = boostedCands.at(0).Phi();
+    float rotTheta = boostedCands.at(0).Theta();
 
     // perform the first two rotations and sum energy
     float sumE = 0;
     float candNum = 0;
-    for(auto icand = boostedCands->begin(); icand != boostedCands->end(); icand++){
+    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
 
         // sum energy
         sumE+= icand->E();
@@ -462,10 +462,10 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
     }
 
     // create the rotation angle for the third rotation
-    float subPsi = TMath::ATan2(boostedCands->at(1).Py(), boostedCands->at(1).Pz());
+    float subPsi = TMath::ATan2(boostedCands.at(1).Py(), boostedCands.at(1).Pz());
 
     candNum = 0;
-    for(auto icand = boostedCands->begin(); icand != boostedCands->end(); icand++){
+    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
 
         // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
         icand->RotateX(subPsi - TMath::Pi()/2.0);
@@ -481,7 +481,7 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
     float leftSum = 0;
     float topSum = 0;
     float botSum = 0;
-    for(auto icand = boostedCands->begin(); icand != boostedCands->end(); icand++){
+    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
         if (icand->CosTheta() > 0){
             topSum+=icand->E();
         }
@@ -505,7 +505,7 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
     //find the x and y coordinates in phi, theta binned space
     //Then fill Image with normalized energy
 
-    for(auto icand = boostedCands->begin(); icand != boostedCands->end(); icand++){
+    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
         int x_bin = -1;
         int y_bin = -1;
         if (topSum >= botSum){
