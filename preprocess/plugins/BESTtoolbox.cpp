@@ -523,10 +523,10 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
         Image[x_bin][y_bin][0] += icand->E() * 10 ;
     }
 
-    // find the leading (highest energy) pixel using reflections to shorten the loop
+    // find the leading (highest energy) pixel
     float normE = Image[15][15][0];
-    for (int x = 14; x < 31; x++){
-        for (int y = 0; y < 16; y++){
+    for (int x = 0; x < 31; x++){
+        for (int y = 0; y < 31; y++){
             if (Image[x][y][0] > normE){
                 normE = Image[x][y][0];
             }
