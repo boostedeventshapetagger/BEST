@@ -365,10 +365,10 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
         if (daughtersOfJet[i]->pt() < 0.5) continue;
 
         // Store the candidate
-        jetVecVars["JetFrame_PF_candidate_px"].push_back(daughtersOfJet[i]->px() );
-        jetVecVars["JetFrame_PF_candidate_py"].push_back(daughtersOfJet[i]->py() );
-        jetVecVars["JetFrame_PF_candidate_pz"].push_back(daughtersOfJet[i]->pz() );
-        jetVecVars["JetFrame_PF_candidate_energy"].push_back(daughtersOfJet[i]->energy() );
+        jetVecVars["LabFrame_PF_candidate_px"].push_back(daughtersOfJet[i]->px() );
+        jetVecVars["LabFrame_PF_candidate_py"].push_back(daughtersOfJet[i]->py() );
+        jetVecVars["LabFrame_PF_candidate_pz"].push_back(daughtersOfJet[i]->pz() );
+        jetVecVars["LabFrame_PF_candidate_energy"].push_back(daughtersOfJet[i]->energy() );
 
         // PUPPI weights for puppi jets
         if (jetColl == 1){
