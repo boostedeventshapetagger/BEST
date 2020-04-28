@@ -104,12 +104,15 @@ def boostedJetCamera(candArray, nbins):
 
     # make a 2D np hist for the image
     jet_image_hist, xedges, yedges = np.histogram2d(phiPrime, thetaPrime, weights=weights, bins=(xbins,ybins))
+
+    # find leading pixel and use reflections to shorten the process
     normE = jet_image_hist[15][15]
-    for x in range(0, nbins): 
-        for y in range(0, nbins) :
+    for x in range((nbins-1)/2 - 1 , 31): 
+        for y in range(0, (nbins-1)/2 + 1 ) :
             if jet_image_hist[x][y] > normE :
                 normE = jet_image_hist[x][y]
 
+    # normalize image using leading pixel
     with np.nditer(jet_image_hist, op_flags=['readwrite']) as image:
         for pixel in image :
             pixel[...] =  pixel / normE
