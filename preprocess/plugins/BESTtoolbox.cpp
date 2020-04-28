@@ -439,12 +439,8 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
     float rotTheta = boostedCands.at(0).Theta();
 
     // perform the first two rotations and sum energy
-    float sumE = 0;
     float candNum = 0;
     for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
-
-        // sum energy
-        sumE+= icand->E();
 
         // rotate all candidates so that the leading candidate is in the x y plane
         icand->RotateZ(-rotPhi);
@@ -524,8 +520,26 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
             x_bin = static_cast<int>(31*(-icand->Phi() + TMath::Pi())/(2.0 * TMath::Pi()));
             x_bin = x_bin%31;
         }
-        Image[x_bin][y_bin][0] += icand->E()/sumE * 10 ;
+        Image[x_bin][y_bin][0] += icand->E() * 10 ;
     }
+
+    // find the leading (highest energy) pixel
+    float normE = Image[15][15][0];
+    for (int x = 0; x < 31; x++){
+        for (int y = 0; y < 31; y++){
+            if (Image[x][y][0] > normE){
+                normE = Image[x][y][0];
+            }
+        }
+    }
+
+    // normalize pixels using leading pixel
+    for (int x = 0; x < 31; x++){
+        for (int y = 0; y < 31; y++){
+            Image[x][y][0] = Image[x][y][0] / normE;
+        }
+    }
+
     return Image;
 }
 
