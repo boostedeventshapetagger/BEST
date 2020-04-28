@@ -113,7 +113,8 @@ def boostedJetCamera(candArray, nbins):
                 normE = jet_image_hist[x][y]
 
     # normalize image using leading pixel
-    with np.nditer(jet_image_hist, op_flags=['readwrite']) as image:
+    image = np.nditer(jet_image_hist, op_flags=['readwrite'])
+    with image:
         for pixel in image :
             pixel[...] =  pixel / normE
 
