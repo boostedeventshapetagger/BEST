@@ -97,12 +97,24 @@ def boostedJetCamera(candArray, nbins):
     phiPrime,thetaPrime = boostedRotations(candArray)
 
     # make the weight list into a np array
-    totE = sum(weightList)
-    normWeight = [(weight / totE)*10 for weight in weightList] #normalize energy to that of the leading, multiply to be in pixel range (0 to 255)
-    weights = np.array(normWeight )
+    #totE = sum(weightList)
+    #normWeight = [(weight / totE)*10 for weight in weightList] #normalize energy to that of the leading, multiply to be in pixel range (0 to 255)
+    #weights = np.array(normWeight )
+    weights = np.array(weightList )
 
     # make a 2D np hist for the image
     jet_image_hist, xedges, yedges = np.histogram2d(phiPrime, thetaPrime, weights=weights, bins=(xbins,ybins))
+
+    # find leading pixel and use reflections to shorten the process
+    normE = jet_image_hist[15][15]
+    for x in range(0, nbins): 
+        for y in range(0, nbins) :
+            if jet_image_hist[x][y] > normE :
+                normE = jet_image_hist[x][y]
+
+    # normalize image using leading pixel
+    for pixel in np.nditer(jet_image_hist, op_flags=['readwrite']) :
+        pixel[...] =  pixel / normE
 
     return jet_image_hist
 

@@ -374,9 +374,10 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
     if(storeDaughters == true){
 
         // Jet PF Candidate Variables
-        listOfVecVars.push_back("jet_PF_candidate_pt");
-        listOfVecVars.push_back("jet_PF_candidate_phi");
-        listOfVecVars.push_back("jet_PF_candidate_eta");
+        listOfVecVars.push_back("LabFrame_PF_candidate_px");
+        listOfVecVars.push_back("LabFrame_PF_candidate_py");
+        listOfVecVars.push_back("LabFrame_PF_candidate_pz");
+        listOfVecVars.push_back("LabFrame_PF_candidate_energy");
 
         listOfVecVars.push_back("HiggsFrame_PF_candidate_px");
         listOfVecVars.push_back("HiggsFrame_PF_candidate_py");
@@ -571,14 +572,14 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector<reco::Candidate * > daughtersOfJet;
     map<string, vector<TLorentzVector> > boostedDaughters;
     map<string, vector<fastjet::PseudoJet> > restJets;
-		
+
     for (vector<pat::Jet>::const_iterator jetBegin = ak8Jets.begin(), jetEnd = ak8Jets.end(), ijet = jetBegin; ijet != jetEnd; ++ijet){
         bool GenMatching = false;
 	daughtersOfJet.clear();
 	boostedDaughters.clear();
 	restJets.clear();
         TLorentzVector jet(ijet->px(), ijet->py(), ijet->pz(), ijet->energy() );
-	
+
         if(ijet->subjets("SoftDropPuppi").size() >=2 && ijet->numberOfDaughters() > 2 && ijet->pt() >= 500 && fabs(ijet->eta()) < 2.4 &&ijet->userFloat("ak8PFJetsPuppiSoftDropMass") > 10) {
 
             // gen particle loop, only relevant for non-QCD jets
@@ -645,7 +646,7 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
 	*/
     }
-    
+
     // Delete vector
     daughtersOfJet.clear();
     boostedDaughters.clear();
