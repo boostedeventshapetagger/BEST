@@ -173,10 +173,10 @@ ZImageModel = Model(inputs = ZImageInputs, outputs = ZImageLayer)
 
 # Create the BES variable version
 besInputs = Input( shape=(BestShapeHolder, ) )
-besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besInputs)
-besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besLayer)
+#besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besInputs)
+#besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besLayer)
 
-besModel = Model(inputs = besInputs, outputs = besLayer)
+besModel = Model(inputs = besInputs, outputs = besInputs)
 print (besModel.output)
 # Add BES variables to the network
 combined = concatenate([HiggsImageModel.output, TopImageModel.output, WImageModel.output, ZImageModel.output, besModel.output])
@@ -211,7 +211,7 @@ print(model_BEST.summary() )
 
 # early stopping
 
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto', restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto') #, restore_best_weights=True)
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
