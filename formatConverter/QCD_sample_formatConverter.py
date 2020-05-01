@@ -54,7 +54,7 @@ print "-------------------------------------------------------------------------
 
 # Loop over input files
 numIter = 0
-for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode='utf-8'):
+for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode='utf-8', flatten = True):
     print "Currently converting jets: ", numIter * 50000 + 1, " to ", (numIter + 1) * 50000
 
     #==================================================================================
@@ -93,9 +93,12 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
     h5f.create_dataset('ZFrame_images_' + str(numIter), data=jetDF['ZFrame_images'], compression='lzf')
 
     # Store BES variables
+    besList = []
+    iVar = 0
     for key in besKeys :
-        jetDF[key] = arrays[key]
-        h5f.create_dataset('BES_vars_' + key + '_' + str(numIter), data=jetDF[key], compression='lzf')
+        besList.append(arrays[key])
+    jetDF['BES_vars'] = besList
+    h5f.create_dataset('BES_vars_' + str(numIter), data=jetDF['BES_vars'], compression='lzf')
 
     #==================================================================================
     # Plot Jet Images /////////////////////////////////////////////////////////////////
