@@ -23,7 +23,7 @@ root.gROOT.SetBatch(True)
 
 # set options 
 plotJetImages = True
-listBESvars = True
+listBESvars = False
 savePDF = False
 savePNG = True 
 
@@ -93,7 +93,6 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
     h5f.create_dataset('ZFrame_images_' + str(numIter), data=jetDF['ZFrame_images'], compression='lzf')
 
     # Store BES variables
-    #jetDF['BES_vars'] = arrays["jet*", "nSecondaryVertices", "bDisc*", "FoxWolfram*", "isotropy_Top", "aplanarity*", "thrust*"]
     for key in besKeys :
         jetDF[key] = arrays[key]
         h5f.create_dataset('BES_vars_' + key + '_' + str(numIter), data=jetDF[key], compression='lzf')
