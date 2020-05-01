@@ -59,28 +59,28 @@ savePNG = True
 # Load images from h5 file
 # put images in data frames
 jetImagesDF = {}
-QCD = h5py.File("/uscms_data/d3/bregnery/BEST/CMSSW_10_1_7/src/BEST/jetCamera/images/qcdBoostedJetImages.h5","r")
-jetImagesDF['QCD'] = QCD['jet_images'][()]
+QCD = h5py.File("../formatConverter/h5samples/QCDSample_BESTinputs.h5","r")
+jetImagesDF['QCD'] = QCD['HiggsFrame_images'][()]
 QCD.close()
 
-HH = h5py.File("/uscms_data/d3/bregnery/BEST/CMSSW_10_1_7/src/BEST/jetCamera/images/HiggsBoostedJetImages.h5","r")
-jetImagesDF['HH'] = HH['jet_images'][()]
+HH = h5py.File("../formatConverter/h5samples/HiggsSample_BESTinputs.h5","r")
+jetImagesDF['HH'] = HH['HiggsFrame_images'][()]
 HH.close()
 
-ZZ = h5py.File("/uscms_data/d3/bregnery/BEST/CMSSW_10_1_7/src/BEST/jetCamera/images/ZBoostedJetImages.h5","r")
-jetImagesDF['ZZ'] = ZZ['jet_images'][()]
+ZZ = h5py.File("../formatConverter/h5samples/Zsample_BESTinputs.h5","r")
+jetImagesDF['ZZ'] = ZZ['HiggsFrame_images'][()]
 ZZ.close()
 
-WW = h5py.File("/uscms_data/d3/bregnery/BEST/CMSSW_10_1_7/src/BEST/jetCamera/images/WBoostedJetImages.h5","r")
-jetImagesDF['WW'] = WW['jet_images'][()]
+WW = h5py.File("../formatConverter/h5samples/WSample_BESTinputs.h5","r")
+jetImagesDF['WW'] = WW['HiggsFrame_images'][()]
 WW.close()
 
-tt = h5py.File("/uscms_data/d3/bregnery/BEST/CMSSW_10_1_7/src/BEST/jetCamera/images/topBoostedJetImages.h5","r")
-jetImagesDF['tt'] = tt['jet_images'][()]
+tt = h5py.File("../formatConverter/h5samples/TopSample_BESTinputs.h5","r")
+jetImagesDF['tt'] = tt['HiggsFrame_images'][()]
 tt.close()
 
-bb = h5py.File("/uscms_data/d3/bregnery/BEST/CMSSW_10_1_7/src/BEST/jetCamera/images/bottomBoostedJetImages.h5","r")
-jetImagesDF['bb'] = bb['jet_images'][()]
+bb = h5py.File("../formatConverter/h5samples/bSample_BESTinputs.h5","r")
+jetImagesDF['bb'] = bb['HiggsFrame_images'][()]
 bb.close()
 
 print "Accessed Jet Images"

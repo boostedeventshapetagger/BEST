@@ -32,7 +32,7 @@ savePNG = True
 
 # access the TFiles and TTrees
 #upTree = uproot.open("/uscms_data/d3/bregnery/BEST/mc2017/preprocess_BEST_ZZ.root")["run/jetTree"]
-upTree = uproot.open("../preprocess/BESTInputs.root")["run/jetTree"]
+upTree = uproot.open("../preprocess/BESTInputs_bSample.root")["run/jetTree"]
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/bSample_BESTinputs.h5","w")

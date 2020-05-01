@@ -32,7 +32,9 @@ savePNG = True
 
 # access the TFiles and TTrees
 #upTree = uproot.open("/uscms_data/d3/bregnery/BEST/mc2017/preprocess_BEST_ZZ.root")["run/jetTree"]
-upTree = uproot.open("../preprocess/BESTInputs.root")["run/jetTree"]
+#upTree = uproot.open("/uscms/home/bonillaj/nobackup/samples/QCD/qcd2017flatBESTinputs.root")["run/jetTree"]
+#upTree = uproot.open("root://cmseos.fnal.gov//store/user/jbonilla/QCD_Pt-15to7000_TuneCP5_Flat2017_13TeV_pythia8/crab_QCD_Flat_Pt_trees/200427_184129/0000/BESTInputs_1.root")["run/jetTree"]
+upTree = uproot.open("../preprocess/BESTInputs_QCDSample.root")["run/jetTree"]
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/QCDSample_BESTinputs.h5","w")

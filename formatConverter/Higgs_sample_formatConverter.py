@@ -32,7 +32,7 @@ savePNG = True
 
 # access the TFiles and TTrees
 #upTree = uproot.open("/uscms_data/d3/bregnery/BEST/mc2017/preprocess_BEST_ZZ.root")["run/jetTree"]
-upTree = uproot.open("../preprocess/BESTInputs.root")["run/jetTree"]
+upTree = uproot.open("../preprocess/BESTInputs_Hsample.root")["run/jetTree"]
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/HiggsSample_BESTinputs.h5","w")
@@ -66,6 +66,7 @@ jetDF['BES_vars'] = upTree.pandas.df(["jetAK8*", "nSecondaryVertices",
                                        "FoxWolfram*", "aplanarity*", "thrust*", "subjet*mass" ])
 h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], compression='lzf')
 
+print jetDF['BES_vars']
 print "Stored Boosted Event Shape variables"
 print "show any NaNs", jetDF['BES_vars'].columns[jetDF['BES_vars'].isna().any()].tolist()
 
