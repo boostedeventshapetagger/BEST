@@ -1,8 +1,9 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # QCD_sample_formatConverter.py ///////////////////////////////////////////////////
 #==================================================================================
+# Author(s): Brendan Regnery ------------------------------------------------------
 # This program converts root ntuples to the python format necessar for training ///
-#==================================================================================
+#----------------------------------------------------------------------------------
 
 # modules
 import ROOT as root
@@ -22,7 +23,7 @@ root.gROOT.SetBatch(True)
 
 # set options 
 plotJetImages = True
-listBESvars = False
+listBESvars = True
 savePDF = False
 savePNG = True 
 
@@ -42,7 +43,8 @@ h5f = h5py.File("h5samples/QCDSample_BESTinputs.h5","w")
 besKeys = []
 
 # the BES variables that you would like to store
-subNames = ["jet", "nSecondaryVertices", "bDisc", "FoxWolfram", "isotropy_Top", "aplanarity", "thrust"]
+subNames = ["jet", "Jet", "nSecondaryVertices", "bDisc", "FoxWolf", 
+            "isotropy_Higgs", "asymmetry", "aplanarity", "sphericity", "thrust"]
 
 print "==================================================================================="
 print "Welcome to the QCD Format Converter"
@@ -64,7 +66,7 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
         keys = arrays.keys()
         for key in keys :
             for name in subNames :
-                if name in key and "candidate" not in key : 
+                if name in key and "candidate" not in key and "jetAK8_eta" not in key and "jetAK8_phi" not in key : 
                     if "px" not in key and "py" not in key and "pz" not in key and "energy" not in key : besKeys.append(key)
         print "There will be ", len(besKeys), " Input features stored"
         if listBESvars == True: print "Here are the stored BES vars ", besKeys
