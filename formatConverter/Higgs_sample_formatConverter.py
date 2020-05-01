@@ -1,8 +1,9 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Higgs_sample_formatConverter.py /////////////////////////////////////////////////
 #==================================================================================
+# Author(s): Brendan Regnery ------------------------------------------------------
 # This program converts root ntuples to the python format necessar for training ///
-#==================================================================================
+#----------------------------------------------------------------------------------
 
 # modules
 import ROOT as root
@@ -22,7 +23,7 @@ root.gROOT.SetBatch(True)
 
 # set options 
 plotJetImages = True
-boostAxis = False
+listBESvars = False
 savePDF = False
 savePNG = True 
 
@@ -31,61 +32,92 @@ savePNG = True
 #==================================================================================
 
 # access the TFiles and TTrees
-#upTree = uproot.open("/uscms_data/d3/bregnery/BEST/mc2017/preprocess_BEST_ZZ.root")["run/jetTree"]
-upTree = uproot.open("../preprocess/BESTInputs_Hsample.root")["run/jetTree"]
+treeName = "run/jetTree"
+fileList = ["/uscms/home/bonillaj/nobackup/samples/QCD/smallQCD.root"]
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/HiggsSample_BESTinputs.h5","w")
 
-# make a data frame to store the images and BES variables
-jetDF = {}
+# list to store the keys for BES variables
+besKeys = []
 
+# the BES variables that you would like to store
+subNames = ["jet", "nSecondaryVertices", "bDisc", "FoxWolfram", "isotropy_Top", "aplanarity", "thrust"]
 
-#==================================================================================
-# Store BEST Inputs ///////////////////////////////////////////////////////////////
-#==================================================================================
+print "==================================================================================="
+print "Welcome to the Higgs Format Converter"
+print "-----------------------------------------------------------------------------------"
+print "This will convert the provided root files to an hdf5 python file"
+print "-----------------------------------------------------------------------------------"
 
-# Store Higgs Frame Images
-jetDF['HiggsFrame_images'] = upTree.arrays()[b'HiggsFrame_image']
-h5f.create_dataset('HiggsFrame_images', data=jetDF['HiggsFrame_images'], compression='lzf')
+# Loop over input files
+numIter = 0
+for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode='utf-8'):
+    print "Currently converting jets: ", numIter * 50000 + 1, " to ", (numIter + 1) * 50000
 
-# Store Top Frame Images
-jetDF['TopFrame_images'] = upTree.arrays()[b'TopFrame_image']
-h5f.create_dataset('TopFrame_images', data=jetDF['TopFrame_images'], compression='lzf')
+    #==================================================================================
+    # Store BEST Inputs ///////////////////////////////////////////////////////////////
+    #==================================================================================
 
-# Store W Frame Images
-jetDF['WFrame_images'] = upTree.arrays()[b'WFrame_image']
-h5f.create_dataset('WFrame_images', data=jetDF['WFrame_images'], compression='lzf')
+    # get BES variable keys
+    if numIter == 0:
+        keys = arrays.keys()
+        for key in keys :
+            for name in subNames :
+                if name in key and "candidate" not in key : 
+                    if "px" not in key and "py" not in key and "pz" not in key and "energy" not in key : besKeys.append(key)
+        print "There will be ", len(besKeys), " Input features stored"
+        if listBESvars == True: print "Here are the stored BES vars ", besKeys
+        if listBESvars == False: print "If you would like to list the BES vars, set listBESvars = True at the beginning of the code"
+    
 
-# Store Z Frame Images
-jetDF['ZFrame_images'] = upTree.arrays()[b'ZFrame_image']
-h5f.create_dataset('ZFrame_images', data=jetDF['ZFrame_images'], compression='lzf')
+    # make a data frame to store the images and BES variables
+    jetDF = {}
 
-# Store BES variables
-jetDF['BES_vars'] = upTree.pandas.df(["jetAK8*", "nSecondaryVertices",
-                                       "FoxWolfram*", "aplanarity*", "thrust*", "subjet*mass" ])
-h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], compression='lzf')
+    # Store Higgs Frame Images
+    jetDF['HiggsFrame_images'] = arrays['HiggsFrame_image']
+    h5f.create_dataset('HiggsFrame_images_' + str(numIter), data=jetDF['HiggsFrame_images'], compression='lzf')
 
-print jetDF['BES_vars']
-print "Stored Boosted Event Shape variables"
-print "show any NaNs", jetDF['BES_vars'].columns[jetDF['BES_vars'].isna().any()].tolist()
+    # Store Top Frame Images
+    jetDF['TopFrame_images'] = arrays['TopFrame_image']
+    h5f.create_dataset('TopFrame_images_' + str(numIter), data=jetDF['TopFrame_images'], compression='lzf')
 
-#==================================================================================
-# Plot Jet Images /////////////////////////////////////////////////////////////////
-#==================================================================================
+    # Store W Frame Images
+    jetDF['WFrame_images'] = arrays['WFrame_image']
+    h5f.create_dataset('WFrame_images_' + str(numIter), data=jetDF['WFrame_images'], compression='lzf')
 
-# plot with python
-if plotJetImages == True:
-   print "Plotting Average Boosted jet images"
-   img.plotAverageBoostedJetImage(jetDF['HiggsFrame_images'], 'HiggsSample_HiggsFrame', savePNG, savePDF)
-   img.plotAverageBoostedJetImage(jetDF['TopFrame_images'], 'HiggsSample_TopFrame', savePNG, savePDF)
-   img.plotAverageBoostedJetImage(jetDF['WFrame_images'], 'HiggsSample_WFrame', savePNG, savePDF)
-   img.plotAverageBoostedJetImage(jetDF['ZFrame_images'], 'HiggsSample_ZFrame', savePNG, savePDF)
+    # Store Z Frame Images
+    jetDF['ZFrame_images'] = arrays['ZFrame_image']
+    h5f.create_dataset('ZFrame_images_' + str(numIter), data=jetDF['ZFrame_images'], compression='lzf')
 
-   img.plotThreeBoostedJetImages(jetDF['HiggsFrame_images'], 'HiggsSample_HiggsFrame', savePNG, savePDF)
-   img.plotThreeBoostedJetImages(jetDF['TopFrame_images'], 'HiggsSample_TopFrame', savePNG, savePDF)
-   img.plotThreeBoostedJetImages(jetDF['WFrame_images'], 'HiggsSample_WFrame', savePNG, savePDF)
-   img.plotThreeBoostedJetImages(jetDF['ZFrame_images'], 'HiggsSample_ZFrame', savePNG, savePDF)
+    # Store BES variables
+    #jetDF['BES_vars'] = arrays["jet*", "nSecondaryVertices", "bDisc*", "FoxWolfram*", "isotropy_Top", "aplanarity*", "thrust*"]
+    for key in besKeys :
+        jetDF[key] = arrays[key]
+        h5f.create_dataset('BES_vars_' + key + '_' + str(numIter), data=jetDF[key], compression='lzf')
+
+    #==================================================================================
+    # Plot Jet Images /////////////////////////////////////////////////////////////////
+    #==================================================================================
+
+    # Only plot jet Images for the first iteration (50,000)
+    if plotJetImages == True and numIter == 0:
+        print "Plotting Averaged images for the first 50,000 jets "
+        img.plotAverageBoostedJetImage(jetDF['HiggsFrame_images'], 'HiggsSample_HiggsFrame', savePNG, savePDF)
+        img.plotAverageBoostedJetImage(jetDF['TopFrame_images'], 'HiggsSample_TopFrame', savePNG, savePDF)
+        img.plotAverageBoostedJetImage(jetDF['WFrame_images'], 'HiggsSample_WFrame', savePNG, savePDF)
+        img.plotAverageBoostedJetImage(jetDF['ZFrame_images'], 'HiggsSample_ZFrame', savePNG, savePDF)
+        
+        print "Plot the First 3 Images " 
+        img.plotThreeBoostedJetImages(jetDF['HiggsFrame_images'], 'HiggsSample_HiggsFrame', savePNG, savePDF)
+        img.plotThreeBoostedJetImages(jetDF['TopFrame_images'], 'HiggsSample_TopFrame', savePNG, savePDF)
+        img.plotThreeBoostedJetImages(jetDF['WFrame_images'], 'HiggsSample_WFrame', savePNG, savePDF)
+        img.plotThreeBoostedJetImages(jetDF['ZFrame_images'], 'HiggsSample_ZFrame', savePNG, savePDF)
+
+    # increment
+    numIter += 1
+
+print "Stored Boosted Event Shape Tagger Inputs"
 
 print "Mischief Managed!!!"
 
