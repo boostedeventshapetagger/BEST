@@ -46,6 +46,20 @@ crab submit crab_*.py
 
 The output file should be ``BESTInputs.root``. DAS datasets can be updated inside the ``crab_*.py`` files.
 
+If you want to submit all crab files of a particular (or set of) sample, use the submitCrab.sh symbolic link within test/submit201X/submitCrab.sh
+The original script lives in ../scripts/submitCrab.sh
+
+```bash
+cd test/submit2017/submitCrab.sh
+./submitCrab.sh HH tt QCD
+```
+
+If instead you would like to submit all crab jobs for a particular year use 'all' as the singular argument
+
+```bash
+./submitCrab.sh all
+```
+
 ### Useful CRAB Commands
 
 To test, get estimates, and then submit do a crab dry run
