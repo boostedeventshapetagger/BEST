@@ -43,22 +43,22 @@ plotInputs = True
 jetDF = {}
 jetLabETDF = {}
 QCD = h5py.File("../formatConverter/h5samples/QCDSample_BESTinputs.h5","r")
-jetLabETDF['QCD'] = QCD['BES_vars'][...,2]
+jetLabETDF['QCD'] = QCD['BES_vars'][...,28]
 QCD.close()
 H = h5py.File("../formatConverter/h5samples/HiggsSample_BESTinputs.h5","r")
-jetLabETDF['H'] = H['BES_vars'][...,2]
+jetLabETDF['H'] = H['BES_vars'][...,28]
 print jetLabETDF['H']
 H.close()
 T = h5py.File("../formatConverter/h5samples/TopSample_BESTinputs.h5","r")
-jetLabETDF['t'] = T['BES_vars'][...,2]
+jetLabETDF['t'] = T['BES_vars'][...,28]
 T.close()
 W = h5py.File("../formatConverter/h5samples/WSample_BESTinputs.h5","r")
-jetLabETDF['W'] = W['BES_vars'][...,2]
+jetLabETDF['W'] = W['BES_vars'][...,28]
 W.close()
-Z = h5py.File("../formatConverter/h5samples/Zsample_BESTinputs.h5","r")
-jetLabETDF['Z'] = Z['BES_vars'][...,2]
+Z = h5py.File("../formatConverter/h5samples/ZSample_BESTinputs.h5","r")
+jetLabETDF['Z'] = Z['BES_vars'][...,28]
 B = h5py.File("../formatConverter/h5samples/bSample_BESTinputs.h5","r")
-jetLabETDF['B'] = B['BES_vars'][...,2]
+jetLabETDF['B'] = B['BES_vars'][...,28]
 B.close()
 
 
