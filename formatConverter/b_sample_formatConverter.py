@@ -127,8 +127,8 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
         besDS = h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], maxshape=(len(besKeys), None), compression='lzf')
     else:
         # append the dataset
-        imgW.resize(imgW.shape[0] + jetDF['WFrame_images'].shape[0], axis=0)
-        imgW[-jetDF['WFrame_images'].shape[0] :] = jetDF['WFrame_images'] 
+        besDS.resize(besDS.shape[1] + len(jetDF['BES_vars'][0]), axis=1)
+        besDS[:,-len(jetDF['BES_vars'][0]) :] = jetDF['BES_vars'] 
 
     #==================================================================================
     # Plot Jet Images /////////////////////////////////////////////////////////////////
