@@ -1,5 +1,5 @@
 #=========================================================================================
-# run_QCD.py -----------------------------------------------------------------------------
+# run_HH.py ------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------
 # Authors: Brendan Regnery, Reyer Band, Johan Bonilla ------------------------------------
 #-----------------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
     fileNames = cms.untracked.vstring(
-        '/store/mc/RunIISummer16MiniAODv3/QCD_Pt-15to7000_TuneCP5_Flat_13TeV_pythia8/MINIAODSIM/PUFlat0to70_94X_mcRun2_asymptotic_v3-v1/280000/F449E78F-6134-EA11-8301-0CC47A745284.root'
+        '/store/mc/RunIISummer16MiniAODv3/BulkGravTohhTohbbhbb_narrow_M-2000_13TeV-madgraph/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v1/00000/DEEE9B39-80CF-E811-9712-0025901AC3F8.root'
         )
                             )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -52,12 +52,12 @@ process.countAK8Jets = cms.EDFilter("PATCandViewCountFilter",
                                     src = cms.InputTag('slimmedJetsAK8')
 #                                    filter = cms.bool(True)
                                     )
+
 # Run the producer
 process.run = cms.EDProducer('BESTProducer',
 	inputJetColl = cms.string('slimmedJetsAK8'),
         jetColl = cms.string('PUPPI'),                     
-        jetType = cms.string('Q'),
-        storeDaughters = cms.bool(True)
+        jetType = cms.string('H')
 )
 process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 
