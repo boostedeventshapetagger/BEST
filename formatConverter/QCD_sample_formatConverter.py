@@ -26,6 +26,7 @@ plotJetImages = True
 listBESvars = False
 savePDF = False
 savePNG = True 
+stopAtIter = 9 # this is for early stopping put 'None' if you want it to go through all files
 
 #==================================================================================
 # Load Monte Carlo ////////////////////////////////////////////////////////////////
@@ -150,6 +151,11 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
 
     # increment
     numIter += 1
+
+    # if the stop iteration option is enabled
+    if stopAtIter == numIter : 
+        print "This program was told to stop early, please set 'stopAtIter = None' if you want it to run through all files"
+        break
 
 print "Stored Boosted Event Shape Tagger Inputs"
 
