@@ -11,7 +11,7 @@ from collections import OrderedDict
 class GenerateBatch(object):
    def __init__(self, batch_size = 1200, validation_frac = 0.1, smearImage = False, debug_info = False, debug_plots = False):
       #File list should be a dict mapping the class to the file
-      filelist = {'QCD' : '../formatConverter/h5samples/QCDSample_BESTinputs.h5', 'H' : '../formatConverter/h5samples/HiggsSample_BESTinputs.h5', 't' : '../formatConverter/h5samples/TopSample_BESTinputs.h5', 'W' : '../formatConverter/h5samples/WSample_BESTinputs.h5', 'Z' : '../formatConverter/h5samples/Zsample_BESTinputs.h5', 'B' : '../formatConverter/h5samples/bSample_BESTinputs.h5'}
+      filelist = {'QCD' : 'images/QCDTransformed.h5', 'H' : 'images/HTransformed.h5', 't' : 'images/TTransformed.h5', 'W' : 'images/WTransformed.h5', 'Z' : 'images/ZTransformed.h5', 'B' : 'images/BTransformed.h5'}
       weightfilelist = {'QCD' : 'PtWeights/QCDEventWeights.h5', 'H' : 'PtWeights/HEventWeights.h5', 't' : 'PtWeights/tEventWeights.h5', 'W' : 'PtWeights/WEventWeights.h5', 'Z' : 'PtWeights/ZEventWeights.h5', 'B' : 'PtWeights/BEventWeights.h5'}
       self.filelist = filelist
       self.weightfilelist = weightfilelist
