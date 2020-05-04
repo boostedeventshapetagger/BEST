@@ -70,7 +70,9 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
                 if name in key and "candidate" not in key and "jetAK8_eta" not in key and "jetAK8_phi" not in key : 
                     if "px" not in key and "py" not in key and "pz" not in key and "energy" not in key : besKeys.append(key)
         print "There will be ", len(besKeys), " Input features stored"
-        if listBESvars == True: print "Here are the stored BES vars ", besKeys
+        if listBESvars == True: 
+            print "Here are the stored BES vars ", besKeys
+            print "jetAK8_pt is indexed as ", besKeys.index("jetAK8_pt"), " make sure this value is used in 'MakeFlatWeights.py' "
         if listBESvars == False: print "If you would like to list the BES vars, set listBESvars = True at the beginning of the code"
     
 
