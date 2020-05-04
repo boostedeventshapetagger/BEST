@@ -104,7 +104,7 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
     else:
         # append the dataset
         imgW.resize(imgW.shape[0] + jetDF['WFrame_images'].shape[0], axis=0)
-        imgTop[-jetDF['WFrame_images'].shape[0] :] = jetDF['WFrame_images'] 
+        imgW[-jetDF['WFrame_images'].shape[0] :] = jetDF['WFrame_images'] 
 
     # Store Z Frame Images
     jetDF['ZFrame_images'] = arrays['ZFrame_image']

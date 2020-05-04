@@ -77,24 +77,57 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
 
     # Store Higgs Frame Images
     jetDF['HiggsFrame_images'] = arrays['HiggsFrame_image']
-    h5f.create_dataset('HiggsFrame_images_' + str(numIter), data=jetDF['HiggsFrame_images'], compression='lzf')
+    if numIter == 0:
+        # make an h5 dataset
+        imgHiggs = h5f.create_dataset('HiggsFrame_images', data=jetDF['HiggsFrame_images'], maxshape=(None,31,31,1), compression='lzf')
+    else:
+        # append the dataset
+        imgHiggs.resize(imgHiggs.shape[0] + jetDF['HiggsFrame_images'].shape[0], axis=0)
+        imgHiggs[-jetDF['HiggsFrame_images'].shape[0] :] = jetDF['HiggsFrame_images'] 
 
     # Store Top Frame Images
     jetDF['TopFrame_images'] = arrays['TopFrame_image']
-    h5f.create_dataset('TopFrame_images_' + str(numIter), data=jetDF['TopFrame_images'], compression='lzf')
+    if numIter == 0:
+        # make an h5 dataset
+        imgTop = h5f.create_dataset('TopFrame_images', data=jetDF['TopFrame_images'], maxshape=(None,31,31,1), compression='lzf')
+    else:
+        # append the dataset
+        imgTop.resize(imgTop.shape[0] + jetDF['TopFrame_images'].shape[0], axis=0)
+        imgTop[-jetDF['TopFrame_images'].shape[0] :] = jetDF['TopFrame_images'] 
 
     # Store W Frame Images
     jetDF['WFrame_images'] = arrays['WFrame_image']
-    h5f.create_dataset('WFrame_images_' + str(numIter), data=jetDF['WFrame_images'], compression='lzf')
+    if numIter == 0:
+        # make an h5 dataset
+        imgW = h5f.create_dataset('WFrame_images', data=jetDF['WFrame_images'], maxshape=(None,31,31,1), compression='lzf')
+    else:
+        # append the dataset
+        imgW.resize(imgW.shape[0] + jetDF['WFrame_images'].shape[0], axis=0)
+        imgW[-jetDF['WFrame_images'].shape[0] :] = jetDF['WFrame_images'] 
 
     # Store Z Frame Images
     jetDF['ZFrame_images'] = arrays['ZFrame_image']
-    h5f.create_dataset('ZFrame_images_' + str(numIter), data=jetDF['ZFrame_images'], compression='lzf')
+    if numIter == 0:
+        # make an h5 dataset
+        imgZ = h5f.create_dataset('ZFrame_images', data=jetDF['ZFrame_images'], maxshape=(None,31,31,1), compression='lzf')
+    else:
+        # append the dataset
+        imgZ.resize(imgZ.shape[0] + jetDF['ZFrame_images'].shape[0], axis=0)
+        imgZ[-jetDF['ZFrame_images'].shape[0] :] = jetDF['ZFrame_images'] 
 
     # Store BES variables
+    besList = []
+    iVar = 0
     for key in besKeys :
-        jetDF[key] = arrays[key]
-        h5f.create_dataset('BES_vars_' + key + '_' + str(numIter), data=jetDF[key], compression='lzf')
+        besList.append(arrays[key])
+    jetDF['BES_vars'] = besList
+    if numIter == 0:
+        # make an h5 dataset
+        besDS = h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], maxshape=(len(besKeys), None), compression='lzf')
+    else:
+        # append the dataset
+        besDS.resize(besDS.shape[1] + len(jetDF['BES_vars'][0]), axis=1)
+        besDS[:,-len(jetDF['BES_vars'][0]) :] = jetDF['BES_vars'] 
 
     #==================================================================================
     # Plot Jet Images /////////////////////////////////////////////////////////////////
