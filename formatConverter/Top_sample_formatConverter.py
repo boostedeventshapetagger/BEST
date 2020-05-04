@@ -8,7 +8,7 @@
 # modules
 import ROOT as root
 import uproot
-import numpy
+import numpy as np
 import pandas as pd
 import h5py
 import matplotlib
@@ -118,17 +118,16 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
 
     # Store BES variables
     besList = []
-    iVar = 0
     for key in besKeys :
         besList.append(arrays[key])
-    jetDF['BES_vars'] = besList
+    jetDF['BES_vars'] = np.array(besList).T
     if numIter == 0:
         # make an h5 dataset
-        besDS = h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], maxshape=(len(besKeys), None), compression='lzf')
+        besDS = h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], maxshape=(None, len(besKeys)), compression='lzf')
     else:
         # append the dataset
-        besDS.resize(besDS.shape[1] + len(jetDF['BES_vars'][0]), axis=1)
-        besDS[:,-len(jetDF['BES_vars'][0]) :] = jetDF['BES_vars'] 
+        besDS.resize(besDS.shape[0] + len(jetDF['BES_vars']), axis=0)
+        besDS[-len(jetDF['BES_vars']) :] = jetDF['BES_vars'] 
 
     #==================================================================================
     # Plot Jet Images /////////////////////////////////////////////////////////////////
