@@ -211,7 +211,7 @@ print(model_BEST.summary() )
 
 # early stopping
 
-early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto') #, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto', restore_best_weights=True)
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
