@@ -50,11 +50,13 @@ class GenerateBatch(object):
       for flavor in self.classes:
          temp_file = h5py.File(self.filelist[flavor], "r")
          for label in self.inputs:
-            data_dict[flavor+'_'+label] = temp_file[flavor+'_'+label][()]
+            datFlav = flavor
+            if datFlav == 't': datFlav = 'T'
+            data_dict[datFlav+'_'+label] = temp_file[datFlav+'_'+label][()]
          temp_file.close()
       print ('Loaded All Data Into Memory')
       if self.debug_plots:
-         print (len(data_dict['QCD_BES']), len(data_dict['H_BES']), len(data_dict['t_BES']), len(data_dict['W_BES']), len(data_dict['Z_BES']), len(data_dict['B_BES']))
+         print (len(data_dict['QCD_BES']), len(data_dict['H_BES']), len(data_dict['T_BES']), len(data_dict['W_BES']), len(data_dict['Z_BES']), len(data_dict['B_BES']))
          print (len(data_dict['QCD_BES']), len(data_dict['QCD_BES'][0]))
          self.besInput_Labels =  ['jetAK8_pt', 'jetAK8_mass', 'jetAK8_SoftDropMass', 'nSecondaryVertices', 'bDisc', 'bDisc1', 'bDisc2', 'jetAK8_Tau4', 'jetAK8_Tau3', 'jetAK8_Tau2', 'jetAK8_Tau1', 'jetAK8_Tau32', 'jetAK8_Tau21', 'FoxWolfH1_Higgs', 'FoxWolfH2_Higgs', 'FoxWolfH3_Higgs', 'FoxWolfH4_Higgs', 'FoxWolfH1_Top', 'FoxWolfH2_Top', 'FoxWolfH3_Top', 'FoxWolfH4_Top', 'FoxWolfH1_W', 'FoxWolfH2_W', 'FoxWolfH3_W', 'FoxWolfH4_W', 'FoxWolfH1_Z', 'FoxWolfH2_Z', 'FoxWolfH3_Z', 'FoxWolfH4_Z', 'isotropy_Higgs', 'sphericity_Higgs', 'aplanarity_Higgs', 'thrust_Higgs', 'sphericity_Top', 'aplanarity_Top', 'thrust_Top', 'sphericity_W', 'aplanarity_W', 'thrust_W', 'sphericity_Z', 'aplanarity_Z', 'thrust_Z', 'njets_Higgs', 'njets_Top', 'njets_W', 'njets_Z', 'jet12_mass_Higgs', 'jet23_mass_Higgs', 'jet13_mass_Higgs', 'jet1234_mass_Higgs', 'jet12_mass_Top', 'jet23_mass_Top', 'jet13_mass_Top', 'jet1234_mass_Top', 'jet12_mass_W', 'jet23_mass_W', 'jet13_mass_W', 'jet1234_mass_W', 'jet12_mass_Z', 'jet23_mass_Z', 'jet13_mass_Z', 'jet1234_mass_Z', 'jet12_CosTheta_Higgs', 'jet23_CosTheta_Higgs', 'jet13_CosTheta_Higgs', 'jet1234_CosTheta_Higgs', 'jet12_CosTheta_Top', 'jet23_CosTheta_Top', 'jet13_CosTheta_Top', 'jet1234_CosTheta_Top', 'jet12_CosTheta_W', 'jet23_CosTheta_W', 'jet13_CosTheta_W', 'jet1234_CosTheta_W', 'jet12_CosTheta_Z', 'jet23_CosTheta_Z', 'jet13_CosTheta_Z', 'jet1234_CosTheta_Z', 'jet12_DeltaCosTheta_Higgs', 'jet13_DeltaCosTheta_Higgs', 'jet23_DeltaCosTheta_Higgs', 'jet12_DeltaCosTheta_Top', 'jet13_DeltaCosTheta_Top', 'jet23_DeltaCosTheta_Top', 'jet12_DeltaCosTheta_W', 'jet13_DeltaCosTheta_W', 'jet23_DeltaCosTheta_W', 'jet12_DeltaCosTheta_Z', 'jet13_DeltaCosTheta_Z', 'jet23_DeltaCosTheta_Z', 'asymmetry_Higgs', 'asymmetry_Top', 'asymmetry_W', 'asymmetry_Z']
          print(len(self.besInput_Labels))
@@ -206,20 +208,22 @@ class GenerateBatch(object):
          if 'BES' not in key:
             temp_image_train_list.append(numpy.zeros((len(keep_train_list), 31, 31, 1))) 
 
+      keyPart = particle_key
+      if keyPart == 't': keyPart = 'T'
 
       for i, key in enumerate(self.inputs):
          if 'BES' not in key:
             for n, index in enumerate(keep_train_list):
-               temp_image_train_list[i][n] = self.data[particle_key+'_'+key][index]
+               temp_image_train_list[i][n] = self.data[keyPart+'_'+key][index]
                if self.debug_info and n is 0 and i is 0:
-                  print (key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index]))
+                  print (key, type(self.data[keyPart+'_'+key][index]), len(self.data[keyPart+'_'+key][index]))
 
 
          if 'BES' in key:
             for n, index in enumerate(keep_train_list):
-               best_vars_train_list.append(self.data[particle_key+'_'+key][index])
+               best_vars_train_list.append(self.data[keyPart+'_'+key][index])
                if self.debug_info and n is 0:
-                  print (key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index]))
+                  print (key, type(self.data[keyPart+'_'+key][index]), len(self.data[keyPart+'_'+key][index]))
 
                   
 #      print(len(best_vars_train_list), len(best_vars_train_list[0]), batch_type, particle_key)

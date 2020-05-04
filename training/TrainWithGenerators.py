@@ -235,16 +235,16 @@ print ("Trained the neural network!")
 #plot_model(model_HHESTIA, to_file='plots/boost_CosTheta_NN_Vis.png')
 
 # Evaluate on ALL the data
-testHiggsImages = numpy.concatenate([data_generator.data['QCD_H'], data_generator.data['H_H'], data_generator.data['t_H'], data_generator.data['W_H'], data_generator.data['Z_H'], data_generator.data['B_H']])
+testHiggsImages = numpy.concatenate([data_generator.data['QCD_H'], data_generator.data['H_H'], data_generator.data['T_H'], data_generator.data['W_H'], data_generator.data['Z_H'], data_generator.data['B_H']])
 #print type(testHiggsImages)
-testTopImages = numpy.concatenate([data_generator.data['QCD_T'], data_generator.data['H_T'], data_generator.data['t_T'], data_generator.data['W_T'], data_generator.data['Z_T'], data_generator.data['B_T']])
-testWImages = numpy.concatenate([data_generator.data['QCD_W'], data_generator.data['H_W'], data_generator.data['t_W'], data_generator.data['W_W'], data_generator.data['Z_W'], data_generator.data['B_W']])
-testZImages = numpy.concatenate([data_generator.data['QCD_Z'], data_generator.data['H_Z'], data_generator.data['t_Z'], data_generator.data['W_Z'], data_generator.data['Z_Z'], data_generator.data['B_Z']])
+testTopImages = numpy.concatenate([data_generator.data['QCD_T'], data_generator.data['H_T'], data_generator.data['T_T'], data_generator.data['W_T'], data_generator.data['Z_T'], data_generator.data['B_T']])
+testWImages = numpy.concatenate([data_generator.data['QCD_W'], data_generator.data['H_W'], data_generator.data['T_W'], data_generator.data['W_W'], data_generator.data['Z_W'], data_generator.data['B_W']])
+testZImages = numpy.concatenate([data_generator.data['QCD_Z'], data_generator.data['H_Z'], data_generator.data['T_Z'], data_generator.data['W_Z'], data_generator.data['Z_Z'], data_generator.data['B_Z']])
 
-testBESvars = numpy.concatenate([data_generator.data['QCD_BES'], data_generator.data['H_BES'], data_generator.data['t_BES'], data_generator.data['W_BES'], data_generator.data['Z_BES'], data_generator.data['B_BES']])
+testBESvars = numpy.concatenate([data_generator.data['QCD_BES'], data_generator.data['H_BES'], data_generator.data['T_BES'], data_generator.data['W_BES'], data_generator.data['Z_BES'], data_generator.data['B_BES']])
 #print type(testBESvars)
 
-testTruth = numpy.concatenate([numpy.full(len(data_generator.data['QCD_H']), 0), numpy.full(len(data_generator.data['H_H']), 1), numpy.full(len(data_generator.data['t_H']), 2), numpy.full(len(data_generator.data['W_H']), 3), numpy.full(len(data_generator.data['Z_H']), 4), numpy.full(len(data_generator.data['B_H']), 5)])
+testTruth = numpy.concatenate([numpy.full(len(data_generator.data['QCD_H']), 0), numpy.full(len(data_generator.data['H_H']), 1), numpy.full(len(data_generator.data['T_H']), 2), numpy.full(len(data_generator.data['W_H']), 3), numpy.full(len(data_generator.data['Z_H']), 4), numpy.full(len(data_generator.data['B_H']), 5)])
 
 testTruth=to_categorical(testTruth, num_classes = 6)
 #print len(testHiggsImages), len(testBESvars), len(testTruth)
