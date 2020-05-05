@@ -44,6 +44,7 @@ jetDF = {}
 jetLabETDF = {}
 QCD = h5py.File("../formatConverter/h5samples/QCDSample_BESTinputs.h5","r")
 jetLabETDF['QCD'] = QCD['BES_vars'][...,28] # Make sure this index is correct if you change something!
+                                            # This can be done in the formatConverter, make sure this is the index corresponding to pT
 QCD.close()
 H = h5py.File("../formatConverter/h5samples/HiggsSample_BESTinputs.h5","r")
 jetLabETDF['H'] = H['BES_vars'][...,28]
