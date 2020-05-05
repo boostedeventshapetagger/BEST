@@ -32,9 +32,10 @@ stopAtIter = 9 # this is for early stopping put 'None' if you want it to go thro
 # Load Monte Carlo ////////////////////////////////////////////////////////////////
 #==================================================================================
 
-# access the TFiles and TTrees
-treeName = "run/jetTree"
-fileList = ["/uscms/home/bonillaj/nobackup/samples/QCD/smallQCD.root"]
+# Store TTree and TFile names
+treeName  = "run/jetTree"
+higgsFile = open("eosSamples/listOfHiggsfilePaths.txt", 'r')
+fileList  = HiggsFile.read().splitlines()
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/HiggsSample_BESTinputs.h5","w")

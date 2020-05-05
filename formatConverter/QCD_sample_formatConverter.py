@@ -32,9 +32,11 @@ stopAtIter = 9 # this is for early stopping put 'None' if you want it to go thro
 # Load Monte Carlo ////////////////////////////////////////////////////////////////
 #==================================================================================
 
-# access the TFiles and TTrees
+# Store TTree and TFile names
 treeName = "run/jetTree"
-fileList = ["/uscms/home/bonillaj/nobackup/samples/QCD/smallQCD.root"]
+qcdFile  = open("eosSamples/listOfQCDfilePaths.txt", 'r')
+fileList = qcdFile.read().splitlines()
+#fileList = ["/uscms/home/bonillaj/nobackup/samples/QCD/smallQCD.root"]
 #fileList = ["/uscms/home/bonillaj/nobackup/samples/QCD/qcd2017flatBESTinputs.root"]
 
 # make file to store the images and BES variables

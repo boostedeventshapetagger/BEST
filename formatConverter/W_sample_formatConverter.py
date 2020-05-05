@@ -32,9 +32,10 @@ stopAtIter = 9 # this is for early stopping put 'None' if you want it to go thro
 # Load Monte Carlo ////////////////////////////////////////////////////////////////
 #==================================================================================
 
-# access the TFiles and TTrees
+# Store TTree and TFile names
 treeName = "run/jetTree"
-fileList = ["/uscms/home/bonillaj/nobackup/samples/QCD/smallQCD.root"]
+wFile    = open("eosSamples/listOfWfilePaths.txt", 'r')
+fileList = wFile.read().splitlines()
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/WSample_BESTinputs.h5","w")
