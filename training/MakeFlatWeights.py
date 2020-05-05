@@ -57,6 +57,7 @@ jetLabETDF['W'] = W['BES_vars'][...,28]
 W.close()
 Z = h5py.File("../formatConverter/h5samples/ZSample_BESTinputs.h5","r")
 jetLabETDF['Z'] = Z['BES_vars'][...,28]
+Z.close()
 B = h5py.File("../formatConverter/h5samples/bSample_BESTinputs.h5","r")
 jetLabETDF['B'] = B['BES_vars'][...,28]
 B.close()
