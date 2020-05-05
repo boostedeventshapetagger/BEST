@@ -34,7 +34,7 @@ stopAtIter = 9 # this is for early stopping put 'None' if you want it to go thro
 
 # Store TTree and TFile names
 treeName = "run/jetTree"
-bFile    = open("eosSamples/listOfBfilePaths.txt", 'r')
+bFile    = open("eosSamples/listOfbfilePaths.txt", 'r')
 fileList = bFile.read().splitlines()
 
 # make file to store the images and BES variables

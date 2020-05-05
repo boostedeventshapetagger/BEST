@@ -35,7 +35,7 @@ stopAtIter = 9 # this is for early stopping put 'None' if you want it to go thro
 # Store TTree and TFile names
 treeName  = "run/jetTree"
 higgsFile = open("eosSamples/listOfHiggsfilePaths.txt", 'r')
-fileList  = HiggsFile.read().splitlines()
+fileList  = higgsFile.read().splitlines()
 
 # make file to store the images and BES variables
 h5f = h5py.File("h5samples/HiggsSample_BESTinputs.h5","w")
