@@ -9,8 +9,7 @@ The `tools` directory contains functions for plotting jet images and making pyth
 
 ## Conversion Instructions
 
-The conversion takes place using uproot to create useful python data structures. Make sure the file is correctly 
-updated with the location of the preprocessed `.root` files. First, make sure that there are directories to store
+The conversion takes place using uproot to create useful python data structures. First, make sure that there are directories to store
 the h5 files and image plots.
 
 ```bash
@@ -18,10 +17,18 @@ mkdir plots
 mkdir h5samples
 ```
 
+Make sure that you have `cmsenv` enabled and have a `vprox`. Next, the lists of eos files must be created using the
+`eosSamples/listXSamples.sh`. If you have created new `.root` ntuples, be sure to update the search paths in these
+shell scripts.
+
+```bash
+cd eosSamples
+source listXSamples.sh
+```
+
 To run the conversion, use the `formatConverter.py`files. 
 
 ```bash
-cmsenv
 python formatConverter.py
 ```
 
