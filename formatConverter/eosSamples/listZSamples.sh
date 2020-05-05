@@ -1,6 +1,6 @@
 #!/bin/bash
 #=========================================================================================
-# listTopSamples.sh ----------------------------------------------------------------------
+# listZSamples.sh ------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------
 # Author(s): Johan S Bonilla, Brendan Regnery --------------------------------------------
 #-----------------------------------------------------------------------------------------
@@ -8,10 +8,10 @@
 # List files from eos with BEST in name (typically /eos/path/BESTInputs_*.root)
 eosDirPath="/store/user/jbonilla/"
 echo "Listing files in $eosDirPath"
-eosBESTFiles=`xrdfsls -R $eosDirPath | grep 'TT.*200504.*BEST'`
+eosBESTFiles=`xrdfsls -R $eosDirPath | grep 'ZZ.*200504.*BEST'`
 
 # Check if file exists, if so delete
-fileToWrite="./listOfTopfilePaths.txt"
+fileToWrite="./listOfZfilePaths.txt"
 if [ -f $fileToWrite ] ; then
     rm $fileToWrite
 fi
