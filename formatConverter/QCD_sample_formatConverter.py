@@ -26,7 +26,7 @@ plotJetImages = True
 listBESvars = False
 savePDF = False
 savePNG = True 
-stopAtIter = 9 # this is for early stopping put 'None' if you want it to go through all files
+stopAt  = 1000000 # this is for early stopping put 'None' if you want it to go through all files
 
 #==================================================================================
 # Load Monte Carlo ////////////////////////////////////////////////////////////////
@@ -58,7 +58,6 @@ print "-------------------------------------------------------------------------
 # Loop over input files
 numIter = 0
 for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode='utf-8', flatten = True):
-    print "Currently converting jets: ", numIter * 50000 + 1, " to ", (numIter + 1) * 50000
 
     #==================================================================================
     # Store BEST Inputs ///////////////////////////////////////////////////////////////
@@ -134,6 +133,8 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
         besDS.resize(besDS.shape[0] + len(jetDF['BES_vars']), axis=0)
         besDS[-len(jetDF['BES_vars']) :] = jetDF['BES_vars'] 
 
+    print "Converted jets: ", besDS.shape[0] - len(jetDF['BES_vars']), " to ", besDS.shape[0]
+
     #==================================================================================
     # Plot Jet Images /////////////////////////////////////////////////////////////////
     #==================================================================================
@@ -156,8 +157,8 @@ for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode=
     numIter += 1
 
     # if the stop iteration option is enabled
-    if stopAtIter == numIter : 
-        print "This program was told to stop early, please set 'stopAtIter = None' if you want it to run through all files"
+    if stopAt != None and stopAt <= besDS.shape[0] : 
+        print "This program was told to stop early, please set 'stopAt = None' if you want it to run through all files"
         break
 
 print "Stored Boosted Event Shape Tagger Inputs"
