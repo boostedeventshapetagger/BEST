@@ -16,18 +16,134 @@ import h5py
 import matplotlib
 matplotlib.use('Agg') #prevents opening displays, must use before pyplot
 import matplotlib.pyplot as plt
+import argparse
+import os
 
-# user modules
+# User modules
 import tools.imageOperations as img
 
-# enter batch mode in root (so python can access displays)
+# Enter batch mode in root, so python can access displays
 root.gROOT.SetBatch(True)
+
+# Global variables
+plotJetImages = True
+listBESvars = False
+savePDF = False
+savePNG = True
+stopAt = None
+listOfSampleTypes = ["b","Higgs","QCD","Top","W","Z"]
+listOfFrameTypes = ["Higgs","Top","W","Z"]
+treeName = "run/jetTree"
+subNames = ["jet", "Jet", "nSecondaryVertices", "bDisc", "FoxWolf", 
+            "isotropy_Higgs", "asymmetry", "aplanarity", "sphericity", "thrust"]
+
+#==================================================================================
+# Load Monte Carlo ////////////////////////////////////////////////////////////////
+#==================================================================================
+def loadMC(eosDir, sampleType):
+    # Find file paths that are relevant in eos and write the paths to a txt file
+    # At the moment the user is expected to make the txt file by eosls dir >> listOfXfilePaths.txt
+    # Remember the file paths should have root://cmseos.fnal.gov//eosDir
+    # In the future this should be automated, hard part is working with eos from python
+    # This file should (for now) live in your current directory (BEST/formatConverter/eosSamples/X.txt)
+
+    # Store TFile paths
+    with open(eosDir+"listOf"+sampleType+"filePaths.txt", 'r') as myFile:
+        # Read file paths from txt file
+        fileList = myFile.read().splitlines()
+        print (fileList)
+        
+        # Make h5f file to store the images and BES variables
+        h5fPath = "h5samples/"+sampleType+"Sample_BESTinputs.h5"
+        print ("Writing h5f file to",h5fPath)
+        h5f = h5py.File(h5fPath,"w")
+
+        # Loop over input files
+        numIter = 0
+        besKeys = []
+        imgFrame = None
+        besDS = None
+        for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode='utf-8'):
+            # get BES variable keys
+            if numIter == 0:
+                keys = arrays.keys()
+                for key in keys :
+                    for name in subNames :
+                        if name in key and "candidate" not in key and "jetAK8_eta" not in key and "jetAK8_phi" not in key : 
+                            if "px" not in key and "py" not in key and "pz" not in key and "energy" not in key : besKeys.append(key)
+                print "There will be ", len(besKeys), " Input features stored"
+                if listBESvars == True: print "Here are the stored BES vars ", besKeys
+                if listBESvars == False: print "If you would like to list the BES vars, set listBESvars = True at the beginning of the code"
+            (imgFrame, besDS) = storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrame, besDS)
+            
+            # if the stop iteration option is enabled
+            if stopAt != None and stopAt <= besDS.shape[0] : 
+                print "This program was told to stop early, please set 'stopAtIter = None' if you want it to run through all files"
+                break
+            
+            # increment
+            numIter += 1
+            
+    print("Finished loading MC")
+    return 
+
+#==================================================================================
+# Store BEST Inputs ///////////////////////////////////////////////////////////////
+#==================================================================================
+#### This imgFrame thing needs to be nicer
+def storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrame, besDS):
+    # make a data frame to store the images and BES variables
+    jetDF = {}
+
+    # Store Frame Images
+    for myType in listOfFrameTypes:
+        jetDF[myType+'Frame_images'] = arrays[myType+'Frame_image']
+        if numIter == 0:
+            # make an h5 dataset
+            imgFrame = h5f.create_dataset(myType+'Frame_images', data=jetDF[myType+'Frame_images'], maxshape=(None,31,31,1), compression='lzf')
+        else:
+            # append the dataset
+            imgFrame.resize(imgFrame.shape[0] + jetDF[myType+'Frame_images'].shape[0], axis=0)
+            imgFrame[-jetDF[myType+'Frame_images'].shape[0] :] = jetDF[myType+'Frame_images'] 
+
+    # Store BES variables
+    besList = []
+    for key in besKeys :
+        besList.append(arrays[key])
+    jetDF['BES_vars'] = np.array(besList).T
+    if numIter == 0:
+        # make an h5 dataset
+        besDS = h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], maxshape=(None, len(besKeys)), compression='lzf')
+    else:
+        # append the dataset
+        besDS.resize(besDS.shape[0] + len(jetDF['BES_vars']), axis=0)
+        besDS[-len(jetDF['BES_vars']) :] = jetDF['BES_vars'] 
+
+    print "Converted jets: ", besDS.shape[0] - len(jetDF['BES_vars']), " to ", besDS.shape[0]
+
+    #==================================================================================
+    # Plot Jet Images /////////////////////////////////////////////////////////////////
+    #==================================================================================
+
+    # Only plot jet Images for the first iteration (50,000)
+    if plotJetImages == True and numIter == 0:
+        print "Plotting Averaged images for the first 50,000 jets "
+        for myFrameType in listOfFrameTypes:
+            img.plotAverageBoostedJetImage(jetDF[myFrameType+'Frame_images'], sampleType+'Sample_'+myFrameType+'Frame', savePNG, savePDF)
+        
+        print "Plot the First 3 Images " 
+        img.plotThreeBoostedJetImages(jetDF[myFrameType+'Frame_images'], sampleType+'Sample_'+myFrameType+'Frame', savePNG, savePDF)
+    
+    print("Finished storing BEST inputs")
+    return (imgFrame, besDS)
+
 
 # Main function should take in arguments and call the functions you want
 if __name__ == "__main__":
+    
+    # Take in arguments
     parser = argparse.ArgumentParser(description='Parse user command-line arguments to execute format conversion to prepare for training.')
     parser.add_argument('-s', '--samples',
-                        type=list, action='store',
                         dest='samples',
                         help='<Required> Which (comma separated) samples to process. Examples: 1) --all; 2) W,Z,b',
                         required=True)
@@ -35,27 +151,42 @@ if __name__ == "__main__":
                         help="Type of training to prepare: batchGenerator or minShape",
                         dest='trainStyle',
                         required=True)
+    parser.add_argument('-sa', '--stopAt',
+                        type=int,
+                        default=-1)
     parser.add_argument('-f', '--flatten',
                         action='store_true')
     parser.add_argument('-si','--standardInput',
                         action='store_true')
+    parser.add_argument('-eos','--eosDir',
+                        dest='eosDir',
+                        default="eosSamples/")
     parser.add_argument('-d','--debug',
                         action='store_true')
     args = parser.parse_args()
+    if not args.samples == "all": listOfSamples = args.samples.split(',')
+    if args.stopAt > 0: stopAt = args.stopAt
     if args.debug:
-        print("Samples to process: ", args.samples)
-        print("Training Style: ", args.trainingStyle)
-        print("Flatten pT: ", args.samples)
-        print("Normalize features: ", args.samples)
+        print("Samples to process: ", listOfSampleTypes)
+        print("Training Style: ", args.trainStyle)
+        print("Flatten pT: ", args.flatten)
+        print("Normalize features: ", args.standardInput)
+        print("Reading Every nEvents: ", stopAt)
 
+    # Make directories you need
+    if not os.path.isdir('plots'): os.mkdir('plots')
+    if not os.path.isdir('h5samples'): os.mkdir('h5samples')
+
+    for sampleType in listOfSamples:
+        print("Processing", sampleType)
+        loadMC(args.eosDir, sampleType)
+        
+    ## Plot total pT distributions
+    
     print("Done")
 
-## Make directories you need
 
-## Take in arguments
 
-## Read eos and make list of files
-## Plot total pT distributions
 
 ## Split into training, validation, and test sets
 ## Plot split pT distributions
