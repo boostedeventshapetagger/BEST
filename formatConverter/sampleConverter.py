@@ -31,7 +31,7 @@ listBESvars = False
 savePDF = False
 savePNG = True
 stopAt = None
-listOfSampleTypes = ["b","Higgs","QCD","Top","W","Z"]
+listOfSamples = ["b","Higgs","QCD","Top","W","Z"]
 listOfFrameTypes = ["Higgs","Top","W","Z"]
 treeName = "run/jetTree"
 subNames = ["jet", "Jet", "nSecondaryVertices", "bDisc", "FoxWolf", 
@@ -40,7 +40,7 @@ subNames = ["jet", "Jet", "nSecondaryVertices", "bDisc", "FoxWolf",
 #==================================================================================
 # Load Monte Carlo ////////////////////////////////////////////////////////////////
 #==================================================================================
-def loadMC(eosDir, sampleType):
+def loadMC(eosDir, outDir, sampleType):
     # Find file paths that are relevant in eos and write the paths to a txt file
     # At the moment the user is expected to make the txt file by eosls dir >> listOfXfilePaths.txt
     # Remember the file paths should have root://cmseos.fnal.gov//eosDir
@@ -48,20 +48,21 @@ def loadMC(eosDir, sampleType):
     # This file should (for now) live in your current directory (BEST/formatConverter/eosSamples/X.txt)
 
     # Store TFile paths
+    print("Reading from", eosDir+"listOf"+sampleType+"filePaths.txt")
     with open(eosDir+"listOf"+sampleType+"filePaths.txt", 'r') as myFile:
         # Read file paths from txt file
         fileList = myFile.read().splitlines()
         print (fileList)
         
         # Make h5f file to store the images and BES variables
-        h5fPath = "h5samples/"+sampleType+"Sample_BESTinputs.h5"
+        h5fPath = outDir+sampleType+"Sample_BESTinputs.h5"
         print ("Writing h5f file to",h5fPath)
         h5f = h5py.File(h5fPath,"w")
 
         # Loop over input files
         numIter = 0
         besKeys = []
-        imgFrame = None
+        imgFrames = {}
         besDS = None
         for arrays in uproot.iterate(fileList, treeName, entrysteps = 50000, namedecode='utf-8'):
             # get BES variable keys
@@ -74,7 +75,7 @@ def loadMC(eosDir, sampleType):
                 print "There will be ", len(besKeys), " Input features stored"
                 if listBESvars == True: print "Here are the stored BES vars ", besKeys
                 if listBESvars == False: print "If you would like to list the BES vars, set listBESvars = True at the beginning of the code"
-            (imgFrame, besDS) = storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrame, besDS)
+            (imgFrames, besDS) = storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrames, besDS)
             
             # if the stop iteration option is enabled
             if stopAt != None and stopAt <= besDS.shape[0] : 
@@ -91,7 +92,7 @@ def loadMC(eosDir, sampleType):
 # Store BEST Inputs ///////////////////////////////////////////////////////////////
 #==================================================================================
 #### This imgFrame thing needs to be nicer
-def storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrame, besDS):
+def storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrames, besDS):
     # make a data frame to store the images and BES variables
     jetDF = {}
 
@@ -100,11 +101,11 @@ def storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrame, besDS):
         jetDF[myType+'Frame_images'] = arrays[myType+'Frame_image']
         if numIter == 0:
             # make an h5 dataset
-            imgFrame = h5f.create_dataset(myType+'Frame_images', data=jetDF[myType+'Frame_images'], maxshape=(None,31,31,1), compression='lzf')
+            imgFrames[myType] = h5f.create_dataset(myType+'Frame_images', data=jetDF[myType+'Frame_images'], maxshape=(None,31,31,1), compression='lzf')
         else:
             # append the dataset
-            imgFrame.resize(imgFrame.shape[0] + jetDF[myType+'Frame_images'].shape[0], axis=0)
-            imgFrame[-jetDF[myType+'Frame_images'].shape[0] :] = jetDF[myType+'Frame_images'] 
+            imgFrames[myType].resize(imgFrames[myType].shape[0] + jetDF[myType+'Frame_images'].shape[0], axis=0)
+            imgFrames[myType][-jetDF[myType+'Frame_images'].shape[0] :] = jetDF[myType+'Frame_images'] 
 
     # Store BES variables
     besList = []
@@ -135,7 +136,7 @@ def storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrame, besDS):
         img.plotThreeBoostedJetImages(jetDF[myFrameType+'Frame_images'], sampleType+'Sample_'+myFrameType+'Frame', savePNG, savePDF)
     
     print("Finished storing BEST inputs")
-    return (imgFrame, besDS)
+    return (imgFrames, besDS)
 
 
 # Main function should take in arguments and call the functions you want
@@ -161,13 +162,16 @@ if __name__ == "__main__":
     parser.add_argument('-eos','--eosDir',
                         dest='eosDir',
                         default="eosSamples/")
+    parser.add_argument('-o','--outDir',
+                        dest='outDir',
+                        default="/uscms/home/bonillaj/nobackup/h5samples/")
     parser.add_argument('-d','--debug',
                         action='store_true')
     args = parser.parse_args()
     if not args.samples == "all": listOfSamples = args.samples.split(',')
     if args.stopAt > 0: stopAt = args.stopAt
     if args.debug:
-        print("Samples to process: ", listOfSampleTypes)
+        print("Samples to process: ", listOfSamples)
         print("Training Style: ", args.trainStyle)
         print("Flatten pT: ", args.flatten)
         print("Normalize features: ", args.standardInput)
@@ -179,7 +183,7 @@ if __name__ == "__main__":
 
     for sampleType in listOfSamples:
         print("Processing", sampleType)
-        loadMC(args.eosDir, sampleType)
+        loadMC(args.eosDir, args.outDir, sampleType)
         
     ## Plot total pT distributions
     
