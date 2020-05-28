@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 import random
+import time
 
 # User modules
 import tools.imageOperations as img
@@ -88,29 +89,44 @@ def splitFile(inputPath, userBatchSize):
     outputFiles["test"] = h5py.File(inputPath.split('.')[0]+"_test.h5","w")
     
     counter = 0
+    startTime = time.time()
     while (counter < totalEvents-1):
+        whileTime = time.time()
         batchSize = userBatchSize if (totalEvents > counter+userBatchSize) else (totalEvents-counter)
         print("Batch size of ",batchSize,", at counter ",counter)
         randomMasks = createRandomMasks(batchSize)
 
         for i in range(0,3):
+            setTime = time.time()
             print("Creating "+setTypes[i]+" set")
+            if counter==0: besData[setTypes[i]] = {}
+            #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
             for thisKey in dataKeys:
-                dsetMasked = [inputFile[thisKey][j] for j in xrange(counter,counter+batchSize) if randomMasks[i][j]]
+                #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
+                keyTime = time.time()
+                dsetMasked = [inputFile[thisKey][counter+j] for j in xrange(0,batchSize) if randomMasks[i][j]]
                 print("Created masked dset for "+thisKey)
                 if counter == 0:
-                    print("Making new DS of size",len(dsetMasked))
-                    besData[setTypes[i]] = {}
-                    if "frame" in thisKey:
+                    #print("Making new DS of size",len(dsetMasked))
+                    #print("Shape of inputFile", list(inputFile[thisKey].shape))
+                    if "frame" in thisKey.lower():
                         besData[setTypes[i]][thisKey] = outputFiles[setTypes[i]].create_dataset(thisKey, data=dsetMasked, maxshape=(None, inputFile[thisKey].shape[1], inputFile[thisKey].shape[2], inputFile[thisKey].shape[3]), compression='lzf')
+                        #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
                     else:
                         besData[setTypes[i]][thisKey] = outputFiles[setTypes[i]].create_dataset(thisKey, data=dsetMasked, maxshape=(None, inputFile[thisKey].shape[1]), compression='lzf')
+                        #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
                 else:
-                    print("Appending DS of size",len(dsetMasked))
-                    besData[setTypes[i]][thisKey].resize(besData[setTypes[i]][thisKey].shape[0] + dsetMasked.shape[0], axis=0)
-                    besData[setTypes[i]][thisKey][-dsetMasked.shape[0] :] = dsetMasked 
-            
+                    #print("Appending DS of size",len(dsetMasked))
+                    #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
+                    #print(besData[setTypes[i]].keys())
+                    besData[setTypes[i]][thisKey].resize(len(besData[setTypes[i]][thisKey]) + len(dsetMasked), axis=0)
+                    besData[setTypes[i]][thisKey][-len(dsetMasked) :] = dsetMasked
+                print("Time to copy key", time.time()-keyTime)
+                #print("besKeys",besData.keys())
+            print("Time to create set", time.time()-setTime)
+        print("Time of batch", time.time()-whileTime)
         counter += batchSize
+    print("Time to split file",time.time()-startTime)
         
     #for myFrame in listOfFrameTypes:
      #   imgFrame = h5f.create_dataset(myFrame+'Frame_images', data=jetDF[myFrame+'Frame_images'], maxshape=(None,31,31,1), compression='lzf')
