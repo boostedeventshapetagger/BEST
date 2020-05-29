@@ -35,11 +35,13 @@ listOfSampleTypes = ["b","Higgs","QCD","Top","W","Z"]
 def splitFile(inputPath, debug):
     listOfFrameTypes = ["Higgs","Top","W","Z"]
     setTypes = ["train", "validation", "test"]
-    
+
+    # Open file, grab keys and NEvents
     inputFile = h5py.File(inputPath,"r")
     dataKeys = inputFile.keys()
     totalEvents = inputFile[dataKeys[0]].shape[0]
-    
+
+    # Create data frame and output files to handle copied information
     besData = {}
     outputFiles = {}
     for setType in setTypes:
@@ -48,17 +50,28 @@ def splitFile(inputPath, debug):
 
     startTime = time.time()
 
+    # Create an array of size NEvents with randomized int elements
+    # Entries 0,1,2 corresponds to train, validation, test (index in setTypes)
     split = np.random.randint(3, size=totalEvents)
 
+    # Loop over keys in data: besVars, 4xImageFrames
     for thisKey in dataKeys:
         keyTime = time.time()
         print("Spltting Key: "+thisKey)
+
+        # Create var pointing to the input data, by key.
+        # Shape is (NEvents, NBESvars) or (NEvents, 31,3 1, 1) 
         keyData = inputFile[thisKey]
         if debug: print("Key Data", keyData.shape)
 
+        # Loop over number of sets: train, valid, test
         for i in range(0,3):
             setTime = time.time()
             print("Creating "+setTypes[i]+" set")
+
+            # Create random mask for set. Split is int array of size NEvents
+            # Operating with bool on entire array
+            # Output is bool array of size NEvents, true ~1/3 of the time and false ~2/3.
             setMask = (split==i)
             if debug:
                 print(setTypes[i]+" mask shape:", setMask.shape)
@@ -66,15 +79,27 @@ def splitFile(inputPath, debug):
 
             setTime = time.time()
             print("Begin "+setTypes[i]+" split")
+
+            # Create masked data
+            # keyData is input data, by key. So (NEvents, BESvars) or (NEvents, FrameImages)
+            # setMask has shape (NEvents,)
+            # The ellipses are used for shape compability when masking. It interprets the dimensions needed.
+            # setData is the masked data. So it should be ~1/3 of the size of keyData.
             setData = keyData[setMask,...]
             if debug: print("Time to copy data:", time.time()-keyTime)
 
             setTime = time.time()
             print("Begin saving data")
+
+            # Create dataset in output files.
+            # The output files are {} with 3 keys: train, validation, test
+            # besData is a {} with same three keys, each entry is also a {} whose keys are the 5 dataKeys: BESvars, 4xImageFrames
+            # BESvars and ImageFrames have different shapes, hence the ifelse. Take shape from original input files.
+            # There could be a better way to interpret the shapes automatically...
             if "frame" in thisKey.lower():
-                besData[setTypes[i]][thisKey] = outputFiles[setTypes[0]].create_dataset(thisKey, data=setData, maxshape=(None, inputFile[thisKey].shape[1], inputFile[thisKey].shape[2], inputFile[thisKey].shape[3]), compression='lzf')
+                besData[setTypes[i]][thisKey] = outputFiles[setTypes[i]].create_dataset(thisKey, data=setData, maxshape=(None, inputFile[thisKey].shape[1], inputFile[thisKey].shape[2], inputFile[thisKey].shape[3]), compression='lzf')
             else:
-                besData[setTypes[i]][thisKey] = outputFiles[setTypes[0]].create_dataset(thisKey, data=setData, maxshape=(None, inputFile[thisKey].shape[1]), compression='lzf')
+                besData[setTypes[i]][thisKey] = outputFiles[setTypes[i]].create_dataset(thisKey, data=setData, maxshape=(None, inputFile[thisKey].shape[1]), compression='lzf')
             if debug: print("Time to save data:", time.time()-setTime)
         
         if debug: print("Time to copy key", time.time()-keyTime)
