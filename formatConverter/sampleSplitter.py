@@ -32,107 +32,55 @@ root.gROOT.SetBatch(True)
 listOfSampleTypes = ["b","Higgs","QCD","Top","W","Z"]
 
 # Helper functions
-def storeBESinputs():
-    # make a data frame to store the images and BES variables
-    jetDF = {}
-
-    # Store Frame Images
-    for myType in listOfFrameTypes:
-        jetDF[myType+'Frame_images'] = arrays[myType+'Frame_image']
-        if numIter == 0:
-            # make an h5 dataset
-            imgFrame = h5f.create_dataset(myType+'Frame_images', data=jetDF[myType+'Frame_images'], maxshape=(None,31,31,1), compression='lzf')
-        else:
-            # append the dataset
-            imgFrame.resize(imgFrame.shape[0] + jetDF[myType+'Frame_images'].shape[0], axis=0)
-            imgFrame[-jetDF[myType+'Frame_images'].shape[0] :] = jetDF[myType+'Frame_images']
-
-    # Store BES variables
-    besList = []
-    for key in besKeys :
-        besList.append(arrays[key])
-    jetDF['BES_vars'] = np.array(besList).T
-    if numIter == 0:
-        # make an h5 dataset
-        besDS = h5f.create_dataset('BES_vars', data=jetDF['BES_vars'], maxshape=(None, len(besKeys)), compression='lzf')
-    else:
-        # append the dataset
-        besDS.resize(besDS.shape[0] + len(jetDF['BES_vars']), axis=0)
-        besDS[-len(jetDF['BES_vars']) :] = jetDF['BES_vars'] 
-
-    print "Converted jets: ", besDS.shape[0] - len(jetDF['BES_vars']), " to ", besDS.shape[0]
-    
-    return
-
-def storeImages():
-    dset1 = f[u'BES_vars']
-    return
-
-def createRandomMasks(batchSize):
-    randomList = [random.randint(0,2) for i in range(batchSize)]
-    trainMask = [el==0 for el in randomList]
-    validationMask = [el==1 for el in randomList]
-    testMask = [el==2 for el in randomList]
-    return (trainMask, validationMask, testMask)
-
-def splitFile(inputPath, userBatchSize):
+def splitFile(inputPath, debug):
     listOfFrameTypes = ["Higgs","Top","W","Z"]
     setTypes = ["train", "validation", "test"]
     
     inputFile = h5py.File(inputPath,"r")
     dataKeys = inputFile.keys()
     totalEvents = inputFile[dataKeys[0]].shape[0]
+    
     besData = {}
     outputFiles = {}
-    outputFiles["train"] = h5py.File(inputPath.split('.')[0]+"_train.h5","w")
-    outputFiles["validation"] = h5py.File(inputPath.split('.')[0]+"_validation.h5","w")
-    outputFiles["test"] = h5py.File(inputPath.split('.')[0]+"_test.h5","w")
-    
-    counter = 0
+    for setType in setTypes:
+        outputFiles[setType] = h5py.File(inputPath.split('.')[0]+"_"+setType+".h5","w")
+
     startTime = time.time()
-    while (counter < totalEvents-1):
-        whileTime = time.time()
-        batchSize = userBatchSize if (totalEvents > counter+userBatchSize) else (totalEvents-counter)
-        print("Batch size of ",batchSize,", at counter ",counter)
-        randomMasks = createRandomMasks(batchSize)
+
+    split = np.random.randint(3, size=totalEvents)
+
+    besData[setTypes[0]] = {}
+    for thisKey in dataKeys:
+        keyTime = time.time()
+        print("Spltting Key: "+thisKey)
+        keyData = inputFile[thisKey]
+        if debug: print("Key Data", keyData.shape)
 
         for i in range(0,3):
             setTime = time.time()
             print("Creating "+setTypes[i]+" set")
-            if counter==0: besData[setTypes[i]] = {}
-            #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
-            for thisKey in dataKeys:
-                #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
-                keyTime = time.time()
-                dsetMasked = [inputFile[thisKey][counter+j] for j in xrange(0,batchSize) if randomMasks[i][j]]
-                print("Created masked dset for "+thisKey)
-                if counter == 0:
-                    #print("Making new DS of size",len(dsetMasked))
-                    #print("Shape of inputFile", list(inputFile[thisKey].shape))
-                    if "frame" in thisKey.lower():
-                        besData[setTypes[i]][thisKey] = outputFiles[setTypes[i]].create_dataset(thisKey, data=dsetMasked, maxshape=(None, inputFile[thisKey].shape[1], inputFile[thisKey].shape[2], inputFile[thisKey].shape[3]), compression='lzf')
-                        #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
-                    else:
-                        besData[setTypes[i]][thisKey] = outputFiles[setTypes[i]].create_dataset(thisKey, data=dsetMasked, maxshape=(None, inputFile[thisKey].shape[1]), compression='lzf')
-                        #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
-                else:
-                    #print("Appending DS of size",len(dsetMasked))
-                    #print("besKeys",besData.keys(),besData[setTypes[i]].keys())
-                    #print(besData[setTypes[i]].keys())
-                    besData[setTypes[i]][thisKey].resize(len(besData[setTypes[i]][thisKey]) + len(dsetMasked), axis=0)
-                    besData[setTypes[i]][thisKey][-len(dsetMasked) :] = dsetMasked
-                print("Time to copy key", time.time()-keyTime)
-                #print("besKeys",besData.keys())
-            print("Time to create set", time.time()-setTime)
-        print("Time of batch", time.time()-whileTime)
-        counter += batchSize
-    print("Time to split file",time.time()-startTime)
+            setMask = (split==i)
+            if debug:
+                print(setTypes[i]+" mask shape:", setMask.shape)
+                print("Time to make mask:", time.time()-keyTime)
+
+            setTime = time.time()
+            print("Begin "+setTypes[i]+" split")
+            setData = keyData[setMask,...]
+            if debug: print("Time to copy data:", time.time()-keyTime)
+
+            setTime = time.time()
+            print("Begin saving data")
+            if "frame" in thisKey.lower():
+                besData[setTypes[i]][thisKey] = outputFiles[setTypes[0]].create_dataset(thisKey, data=setData, maxshape=(None, inputFile[thisKey].shape[1], inputFile[thisKey].shape[2], inputFile[thisKey].shape[3]), compression='lzf')
+            else:
+                besData[setTypes[i]][thisKey] = outputFiles[setTypes[0]].create_dataset(thisKey, data=setData, maxshape=(None, inputFile[thisKey].shape[1]), compression='lzf')
+            if debug: print("Time to save data:", time.time()-setTime)
         
-    #for myFrame in listOfFrameTypes:
-     #   imgFrame = h5f.create_dataset(myFrame+'Frame_images', data=jetDF[myFrame+'Frame_images'], maxshape=(None,31,31,1), compression='lzf')
-      #  besData = h5f.create_dataset('BES_vars', data=[dsetTrain[i] for i in xrange(len(dsetTrain)) if msk[i]], maxshape=(None,94), compression='lzf')
-            
+        if debug: print("Time to copy key", time.time()-keyTime)
+        
     print("Finished splitting")
+    if debug: print("Time to split file",time.time()-startTime)
     return 
 
 # Main function should take in arguments and call the functions you want
@@ -144,9 +92,6 @@ if __name__ == "__main__":
                         dest='samples',
                         help='<Required> Which (comma separated) samples to process. Examples: 1) --all; 2) W,Z,b',
                         required=True)
-    parser.add_argument('-bs', '--batchSize',
-                        type=int,
-                        required=True)
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
                         default="h5samples/")
@@ -154,19 +99,16 @@ if __name__ == "__main__":
                         action='store_true')
     args = parser.parse_args()
     if not args.samples == "all": listOfSamples = args.samples.split(',')
-    if args.batchSize < 0: quit()
     if args.debug:
         print("Samples to process: ", listOfSampleTypes)
-        print("Reading Every nEvents: ", args.batchSize)
 
     # Make directories you need
-    #if not os.path.isdir('plots'): os.mkdir('plots')
     if not os.path.isdir(args.h5Dir): print(args.h5Dir, "does not exist")
 
     for sampleType in listOfSamples:
         print("Processing", sampleType)
         inputPath = args.h5Dir+sampleType+"Sample_BESTinputs.h5"
-        splitFile(inputPath, args.batchSize)
+        splitFile(inputPath, args.debug)
         
         
     ## Plot total pT distributions
