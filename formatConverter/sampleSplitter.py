@@ -43,13 +43,13 @@ def splitFile(inputPath, debug):
     besData = {}
     outputFiles = {}
     for setType in setTypes:
+        besData[setType] = {}
         outputFiles[setType] = h5py.File(inputPath.split('.')[0]+"_"+setType+".h5","w")
 
     startTime = time.time()
 
     split = np.random.randint(3, size=totalEvents)
 
-    besData[setTypes[0]] = {}
     for thisKey in dataKeys:
         keyTime = time.time()
         print("Spltting Key: "+thisKey)
