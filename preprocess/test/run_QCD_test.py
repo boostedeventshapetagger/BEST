@@ -42,7 +42,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, GT2)
 ##############################################################################
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-fileNames = cms.untracked.vstring(['root://cms-xrd-global.cern.ch//store/mc/RunIIFall17MiniAODv2/QCD_Pt-15to7000_TuneCP5_Flat2017_13TeV_pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/70000/AA231798-AA43-E811-BCDC-0CC47A7C35A8.root'])
+file_names = cms.untracked.vstring(['root://cms-xrd-global.cern.ch//store/mc/RunIIFall17MiniAODv2/QCD_Pt-15to7000_TuneCP5_Flat2017_13TeV_pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/70000/AA231798-AA43-E811-BCDC-0CC47A7C35A8.root'])
 
 process.source = cms.Source("PoolSource",
     fileNames = file_names)
