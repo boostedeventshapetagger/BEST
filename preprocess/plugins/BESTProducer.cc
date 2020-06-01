@@ -452,7 +452,7 @@ BESTProducer::BESTProducer(const edm::ParameterSet& iConfig):
 
     // AK8 Jets
     edm::InputTag ak8JetsTag_;
-    ak8JetsTag_ = edm::InputTag("slimmedJetsAK8", "", "PAT");
+    ak8JetsTag_ = edm::InputTag("mySmearedAK8Jets", "", "run");
     //    ak8JetsTag_ = edm::InputTag(inputJetColl_, "", "run"); // this may be needed as an option for 2016 mc
     ak8JetsToken_ = consumes<std::vector<pat::Jet> >(ak8JetsTag_);
 
