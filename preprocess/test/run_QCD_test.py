@@ -48,7 +48,7 @@ process.source = cms.Source("PoolSource",
     fileNames = file_names)
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
-process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs_QCDSample.root") )
+process.TFileService = cms.Service("TFileService", fileName = cms.string("BESTInputs.root") )
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string("ana_out.root"),
                                SelectEvents   = cms.untracked.PSet( SelectEvents = cms.vstring('p') ),
