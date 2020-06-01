@@ -33,16 +33,17 @@ root.gROOT.SetBatch(True)
 listOfSamples = ["b","Higgs","QCD","Top","W","Z"]
 
 # Helper functions
-def splitFileSKL(inputPath, debug):
+def splitFileSKL(inputPath, debug, userBatchSize):
     print("Starting clock")
     startTime = time.time()
     
     listOfFrameTypes = ["Higgs","Top","W","Z"]
     setTypes = ["train", "validation", "test"]
 
-    # Open file, grab keys
+    # Open file, grab keys, and NEvents
     inputFile = h5py.File(inputPath,"r")
     dataKeys = inputFile.keys()
+    totalEvents = inputFile[dataKeys[0]].shape[0]
 
     # Create data frame and output files to handle copied information
     # Make h5f file to store the images and BES variables
@@ -56,27 +57,44 @@ def splitFileSKL(inputPath, debug):
         besData[setType] = {}
         #outputFiles[setType] = h5py.File(inputPath.split('.')[0]+"_"+setType+".h5","w")
 
-    print("Starting key loop")
-    for myKey in dataKeys:
-        keyTime = time.time()
-        dsetH5 = inputFile[myKey]
-        dsetNP = np.array(dsetH5)
-        print("NPdset creation time:", time.time()-keyTime)
-        output1 = train_test_split(dsetNP, train_size=0.33, shuffle=True)
-        output2 = train_test_split(output1[0], train_size=0.5, shuffle=True)
-        print("Outdset creation time:", time.time()-keyTime)
-        if "frame" in myKey.lower():
-            besData["train"][myKey] = h5fTrain.create_dataset(myKey, data=output1[0], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
-            besData["validation"][myKey] = h5fValidation.create_dataset(myKey, data=output2[0], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
-            besData["test"][myKey] = h5fTest.create_dataset(myKey, data=output2[1], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
-            print("DS store time:", time.time()-keyTime)
-        else:
-            besData["train"][myKey] = h5fTrain.create_dataset(myKey, data=output1[0], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
-            besData["validation"][myKey] = h5fValidation.create_dataset(myKey, data=output2[0], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
-            besData["test"][myKey] = h5fTest.create_dataset(myKey, data=output2[1], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
-            print("DS store time:", time.time()-keyTime)
-        print("Key iteration time:", time.time()-keyTime)
-        keyTime = time.time()
+    counter = 0
+    while (counter < totalEvents):
+        batchTime = time.time()
+        batchSize = userBatchSize if (totalEvents > counter+userBatchSize) else (totalEvents-counter)
+        print("Batch size of ",batchSize,", at counter ",counter)
+        print("Starting key loop")
+        for myKey in dataKeys:
+            keyTime = time.time()
+            #dsetH5 = inputFile[myKey]
+            dsetNP = np.array(inputFile[myKey][counter:counter+batchSize])
+            print("NPdset creation time:", time.time()-keyTime)
+            output1 = train_test_split(dsetNP, train_size=0.34, shuffle=True)
+            output2 = train_test_split(output1[1], train_size=0.5, shuffle=True)
+            print("Outdset creation time:", time.time()-keyTime)
+            if counter == 0:
+                if "frame" in myKey.lower():
+                    besData["train"][myKey] = h5fTrain.create_dataset(myKey, data=output1[0], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
+                    besData["validation"][myKey] = h5fValidation.create_dataset(myKey, data=output2[0], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
+                    besData["test"][myKey] = h5fTest.create_dataset(myKey, data=output2[1], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
+                    print("DS store time:", time.time()-keyTime)
+                else:
+                    besData["train"][myKey] = h5fTrain.create_dataset(myKey, data=output1[0], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
+                    besData["validation"][myKey] = h5fValidation.create_dataset(myKey, data=output2[0], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
+                    besData["test"][myKey] = h5fTest.create_dataset(myKey, data=output2[1], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
+                    print("DS store time:", time.time()-keyTime)
+            else:
+                # append the dataset
+                besData["train"][myKey].resize(besData["train"][myKey].shape[0] + len(output1[0]), axis=0)
+                besData["train"][myKey][-len(output1[0]) :] = output1[0]
+                besData["validation"][myKey].resize(besData["validation"][myKey].shape[0] + len(output2[0]), axis=0)
+                besData["validation"][myKey][-len(output2[0]) :] = output2[0]
+                besData["test"][myKey].resize(besData["test"][myKey].shape[0] + len(output2[1]), axis=0)
+                besData["test"][myKey][-len(output2[1]) :] = output2[1] 
+                print("DS store time:", time.time()-keyTime)
+            print("Key iteration time:", time.time()-keyTime)
+            keyTime = time.time()
+        print("Batch time:", time.time()-batchTime)
+        counter += batchSize
     print("Splitting time:", time.time()-startTime)
 
 def splitFileSlow(inputPath, debug):
@@ -167,6 +185,9 @@ if __name__ == "__main__":
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
                         default="h5samples/")
+    parser.add_argument('-bs', '--batchSize',
+                        type=int,
+                        required=True)
     parser.add_argument('-d','--debug',
                         action='store_true')
     args = parser.parse_args()
@@ -181,7 +202,7 @@ if __name__ == "__main__":
         print("Processing", sampleType)
         inputPath = args.h5Dir+sampleType+"Sample_BESTinputs.h5"
         #splitFileSlow(inputPath, args.debug)
-        splitFileSKL(inputPath, args.debug)
+        splitFileSKL(inputPath, args.debug, args.batchSize)
         
         
     ## Plot total pT distributions
