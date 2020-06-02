@@ -9,7 +9,7 @@ listOfSamples = ["b","Higgs","QCD","Top","W","Z"]
 listOfSampleTypess = ["","train","validation","test"]
 
 def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex, userBatchSize):
-    print("Begin flattening")
+    print("Begin flattening for", myType)
     for mySample in listOfSamples:
         filePath = h5Dir+mySample+'Sample_BESTinputs'
         if myType == "":
@@ -20,33 +20,46 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
         fOut = h5py.File(filePath.split('.')[0]+"_flattened.h5","w")
         besData = {}
         counter = 0
-        print("Begin batching")
+        totalEvents = fIn[fIn.keys()[0]].shape[0]
+        print("Begin batching for sample", mySample, "total events", totalEvents)
         while (counter < totalEvents):
             batchSize = userBatchSize if (totalEvents > counter+userBatchSize) else (totalEvents-counter)
             print("Batch size", batchSize, "at", counter)
-            for myKey in fIn.keys():
-                print("Key", myKey)
-                dsetNP = np.array(fIn[myKey][counter:counter+batchSize,flattenIndex])
-                for binIndex in range(0,len(bins)):
-                    currLowRange = bins[binIndex]
-                    currHighRange = min(currLowRange+binSize, maxRange)
-                    ## Pick out data in bin
-                    myDataBool = (currLowRange<dsetNP)*(dsetNP<currHighRange)
-                    ## (bool = True -> mask) so need to invert mask to keep desired info
-                    dataMask = ma.masked_array(dsetNP, mask=~myDataBool)
-                    ## Invert mask again (Maybe this could be cleaner)
-                    ## Shape of truncated data is (NEventsPass,)
-                    myTruncatedData = dataMask[~dataMask.mask]
-                    output1 = train_test_split(myTruncatedData, train_size=keepProbs[mySample], shuffle=True)
-                if counter == 0:
-                    if "frame" in myKey.lower():
-                        besData[myKey] = h5fTrain.create_dataset(myKey, data=output1[0], maxshape=(None, inputFile[myKey].shape[1], inputFile[myKey].shape[2], inputFile[myKey].shape[3]), compression='lzf')
+            myPtData = np.array(fIn["BES_vars"][counter:counter+batchSize,flattenIndex])
+            print("Shape of myPtData", myPtData.shape)
+            for binIndex in range(0,len(bins)):
+                myProbability = keepProbs[listOfSamples.index(mySample)][binIndex]
+                if myProbability == 0:
+                    print("Probability is 0, skipping saving part")
+                    continue
+                currLowRange = bins[binIndex]
+                currHighRange = min(currLowRange+binSize, maxRange)
+                ## Pick out data in bin, myDataBool has shape (batchSize,1) with boolean values of whether the event is in the right bin
+                myDataBool = (currLowRange<myPtData)*(myPtData<currHighRange)
+                print("Processing Bin:", currLowRange, currHighRange)
+                print("Shape of myDataBool", myDataBool.shape)
+                for myKey in fIn.keys():
+                    print("Key", myKey)
+                    myKeyData = np.array(fIn[myKey][counter:counter+batchSize,...])
+                    print("Shape of myKeyData", myKeyData.shape)
+                    result = myKeyData[myDataBool]
+                    print("Shape of result", result.shape)
+                    output = result
+                    if myProbability < 1:
+                        output = train_test_split(result, train_size=myProbability, shuffle=True)[0]
+                    print("Size of kept events", len(output))
+                    if not myKey in besData.keys():
+                        print("Making new datset")
+                        if "frame" in myKey.lower():
+                            besData[myKey] = fOut.create_dataset(myKey, data=output, maxshape=(None, fIn[myKey].shape[1], fIn[myKey].shape[2], fIn[myKey].shape[3]), compression='lzf')
+                        else:
+                            besData[myKey] = fOut.create_dataset(myKey, data=output, maxshape=(None, fIn[myKey].shape[1]), compression='lzf')
                     else:
-                        besData[myKey] = h5fTrain.create_dataset(myKey, data=output1[0], maxshape=(None, inputFile[myKey].shape[1]), compression='lzf')
-                else:
-                    # append the dataset
-                    besData[myKey].resize(besData[myKey].shape[0] + len(output1[0]), axis=0)
-                    besData[myKey][-len(output1[0]) :] = output1[0]
+                        # append the dataset
+                        print("Appending dataset")
+                        besData[myKey].resize(besData[myKey].shape[0] + len(output[0]), axis=0)
+                        besData[myKey][-len(output[0]) :] = output[0]
+            counter += batchSize
 
 def getProbabilities(h5Dir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex):
     print("Begin making probabilities array")
