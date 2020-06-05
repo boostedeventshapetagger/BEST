@@ -27,27 +27,34 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
             print("Batch size", batchSize, "at", counter)
             myPtData = np.array(fIn["BES_vars"][counter:counter+batchSize,flattenIndex])
             print("Shape of myPtData", myPtData.shape)
-            for binIndex in range(0,len(bins)):
-                myProbability = keepProbs[listOfSamples.index(mySample)][binIndex]
-                if myProbability == 0:
-                    print("Probability is 0, skipping saving part")
-                    continue
-                currLowRange = bins[binIndex]
-                currHighRange = min(currLowRange+binSize, maxRange)
-                ## Pick out data in bin, myDataBool has shape (batchSize,1) with boolean values of whether the event is in the right bin
-                myDataBool = (currLowRange<myPtData)*(myPtData<currHighRange)
-                print("Processing Bin:", currLowRange, currHighRange)
-                print("Shape of myDataBool", myDataBool.shape)
-                for myKey in fIn.keys():
-                    print("Key", myKey)
-                    myKeyData = np.array(fIn[myKey][counter:counter+batchSize,...])
-                    print("Shape of myKeyData", myKeyData.shape)
+
+            for myKey in fIn.keys():
+                print("Key", myKey)
+                myKeyData = np.array(fIn[myKey][counter:counter+batchSize,...])
+                print("Shape of myKeyData", myKeyData.shape)      
+                for binIndex in range(0,len(bins)):
+                    myProbability = keepProbs[listOfSamples.index(mySample)][binIndex]
+                    if myProbability == 0:
+                        print("Probability is 0, skipping saving part")
+                        continue
+                    currLowRange = bins[binIndex]
+                    currHighRange = min(currLowRange+binSize, maxRange)
+                    ## Pick out data in bin, myDataBool has shape (batchSize,1) with boolean values of whether the event is in the right bin
+                    myDataBool = (currLowRange<myPtData)*(myPtData<currHighRange)
+                    print("Processing Bin:", currLowRange, currHighRange)
+                    print("Shape of myDataBool", myDataBool.shape)
                     result = myKeyData[myDataBool]
                     print("Shape of result", result.shape)
+                    if result.shape[0] == 0:
+                        print("Result has no events in bin, continue to next bin")
+                        continue
                     output = result
                     if myProbability < 1:
                         output = train_test_split(result, train_size=myProbability, shuffle=True)[0]
                     print("Size of kept events", len(output))
+                    if len(output) == 0:
+                        print("Output has no events in bin, continue to next bin")
+                        continue
                     if not myKey in besData.keys():
                         print("Making new datset")
                         if "frame" in myKey.lower():
@@ -57,8 +64,8 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
                     else:
                         # append the dataset
                         print("Appending dataset")
-                        besData[myKey].resize(besData[myKey].shape[0] + len(output[0]), axis=0)
-                        besData[myKey][-len(output[0]) :] = output[0]
+                        besData[myKey].resize(besData[myKey].shape[0] + len(output), axis=0)
+                        besData[myKey][-len(output) :] = output
             counter += batchSize
 
 def getProbabilities(h5Dir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex):
