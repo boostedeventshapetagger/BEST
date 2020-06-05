@@ -68,8 +68,11 @@ def splitFileSKL(inputPath, debug, userBatchSize):
             #dsetH5 = inputFile[myKey]
             dsetNP = np.array(inputFile[myKey][counter:counter+batchSize])
             print("NPdset creation time:", time.time()-keyTime)
-            output1 = train_test_split(dsetNP, train_size=0.34, shuffle=True)
-            output2 = train_test_split(output1[1], train_size=0.5, shuffle=True)
+            ## Shuffle=True shuffles the incoming data set.
+            ## Random state sets the seed. The values are meaningless, but the same value leads to same results
+            ## The most important thing here is that each key is passed the same random state so the same events are split and kept
+            output1 = train_test_split(dsetNP, train_size=0.34, shuffle=True, random_state=42)
+            output2 = train_test_split(output1[1], train_size=0.5, shuffle=True, random_state=24)
             print("Outdset creation time:", time.time()-keyTime)
             if counter == 0:
                 if "frame" in myKey.lower():

@@ -50,7 +50,8 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
                         continue
                     output = result
                     if myProbability < 1:
-                        output = train_test_split(result, train_size=myProbability, shuffle=True)[0]
+                        ## The random state needs to be the same for each key to ensure we keep the same events across keys
+                        output = train_test_split(result, train_size=myProbability, shuffle=True, random_state=29)[0]
                     print("Size of kept events", len(output))
                     if len(output) == 0:
                         print("Output has no events in bin, continue to next bin")
