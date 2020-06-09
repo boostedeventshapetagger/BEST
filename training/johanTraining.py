@@ -60,6 +60,8 @@ frameTypes = ["W","Z","H","t"]
 # Load Jet Images /////////////////////////////////////////////////////////////////
 #==================================================================================
 
+## The standard scalar needs to be implemented
+
 # Load images from h5 file
 # put images in data frames
 jetDF = {} # Keys are "mySample_myKey_mySet", i.e. QCD_HiggsFrame_images_train
