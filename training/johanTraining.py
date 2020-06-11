@@ -1,7 +1,7 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # johanTraining.py ////////////////////////////////////////////////////////////////
 #==================================================================================
-# This program trains an image only version of BEST ///////////////////////////////
+# This program trains BEST with flattened inputs //////////////////////////////////
 #==================================================================================
 
 # modules
@@ -53,7 +53,7 @@ savePDF = False
 savePNG = True
 
 setTypes = ["train","validation","test"]
-sampleTypes = ["QCD","b","W","Z","H","t"]
+sampleTypes = ["QCD","b","W","Z","Higgs","Top"]
 frameTypes = ["W","Z","H","t"]
 
 #==================================================================================
@@ -67,7 +67,7 @@ frameTypes = ["W","Z","H","t"]
 jetDF = {} # Keys are "mySample_myKey_mySet", i.e. QCD_HiggsFrame_images_train
 for mySet in setTypes:
    for mySample in sampleTypes:
-      myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+myType+"_flattened.h5","r")
+      myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet+"_flattened_standardized.h5","r")
       for myKey in myF.keys():
          jetDF[mySample+"_"+myKey+"_"+mySet] = myF[myKey][()]
       myF.close()
@@ -88,36 +88,115 @@ print("Made image dataframes")
 # print("Number of b Jet Images: ", len(jetImagesDF['bb']) )
 
 ## Order of categories: 0-W, 1-Z, 2-H, 3-t, 4-b, 5-QCD
-truthLabelsTrain = numpy.concatenate([numpy.zeros(len(jetDF['W_BES_vars_train']) ), numpy.ones(len(jetImagesDF['Z_BES_vars_train']) ), numpy.full(len(jetImagesDF['H_BES_vars_train']), 2),
-                            numpy.full(len(jetImagesDF['t_BES_vars_train']), 3), numpy.full(len(jetImagesDF['b_BES_vars_train']), 4), numpy.full(len(jetImagesDF['QCD_BES_vars_train']), 5)] )
-truthLabelsValidation = numpy.concatenate([numpy.zeros(len(jetDF['W_BES_vars_validation']) ), numpy.ones(len(jetImagesDF['Z_BES_vars_validation']) ), numpy.full(len(jetImagesDF['H_BES_vars_validation']), 2),
-                            numpy.full(len(jetImagesDF['t_BES_vars_validation']), 3), numpy.full(len(jetImagesDF['b_BES_vars_validation']), 4), numpy.full(len(jetImagesDF['QCD_BES_vars_validation']), 5)] )
+truthLabelsTrain = numpy.concatenate([
+   numpy.zeros(len(jetDF['W_BES_vars_train']) ),
+   numpy.ones(len(jetDF['Z_BES_vars_train']) ),
+   numpy.full(len(jetDF['Higgs_BES_vars_train']), 2),
+   numpy.full(len(jetDF['Top_BES_vars_train']), 3),
+   numpy.full(len(jetDF['b_BES_vars_train']), 4),
+   numpy.full(len(jetDF['QCD_BES_vars_train']), 5)] )
 truthLabelsTrain = to_categorical(truthLabelsTrain, num_classes = 6)
+print("Made Truth Labels Train")
+
+truthLabelsValidation = numpy.concatenate([
+   numpy.zeros(len(jetDF['W_BES_vars_validation']) ),
+   numpy.ones(len(jetDF['Z_BES_vars_validation']) ),
+   numpy.full(len(jetDF['Higgs_BES_vars_validation']), 2),
+   numpy.full(len(jetDF['Top_BES_vars_validation']), 3),
+   numpy.full(len(jetDF['b_BES_vars_validation']), 4),
+   numpy.full(len(jetDF['QCD_BES_vars_validation']), 5)] )
 truthLabelsValidation = to_categorical(truthLabelsValidation, num_classes = 6)
+print("Made Truth Labels Validation")
 
-jetHImageTrain = numpy.concatenate([jetDF['W_HiggsFrame_images_train'], jetImagesDF['Z_HiggsFrame_images_train'], jetImagesDF['Z_HiggsFrame_images_train'], jetImagesDF['t_HiggsFrame_images_train'], jetImagesDF['b_HiggsFrame_images_train'], jetImagesDF['QCD_HiggsFrame_images_train'] ])
-jetHImageValidation = numpy.concatenate([jetDF['W_HiggsFrame_images_validation'], jetImagesDF['Z_HiggsFrame_images_validation'], jetImagesDF['Z_HiggsFrame_images_validation'], jetImagesDF['t_HiggsFrame_images_validation'], jetImagesDF['b_HiggsFrame_images_validation'], jetImagesDF['QCD_HiggsFrame_images_validation'] ])
+jetHImageTrain = numpy.concatenate([
+   jetDF['W_HiggsFrame_images_train'],
+   jetDF['Z_HiggsFrame_images_train'],
+   jetDF['Higgs_HiggsFrame_images_train'],
+   jetDF['Top_HiggsFrame_images_train'],
+   jetDF['b_HiggsFrame_images_train'],
+   jetDF['QCD_HiggsFrame_images_train'] ])
+print("Stored H Images Train")
 
-jetWImageTrain = numpy.concatenate([jetDF['W_WFrame_images_train'], jetImagesDF['Z_WFrame_images_train'], jetImagesDF['Z_WFrame_images_train'], jetImagesDF['t_WFrame_images_train'], jetImagesDF['b_WFrame_images_train'], jetImagesDF['QCD_WFrame_images_train'] ])
-jetWImageValidation = numpy.concatenate([jetDF['W_WFrame_images_validation'], jetImagesDF['Z_WFrame_images_validation'], jetImagesDF['Z_WFrame_images_validation'], jetImagesDF['t_WFrame_images_validation'], jetImagesDF['b_WFrame_images_validation'], jetImagesDF['QCD_WFrame_images_validation'] ])
+jetHImageValidation = numpy.concatenate([
+   jetDF['W_HiggsFrame_images_validation'],
+   jetDF['Z_HiggsFrame_images_validation'],
+   jetDF['Higgs_HiggsFrame_images_validation'],
+   jetDF['Top_HiggsFrame_images_validation'],
+   jetDF['b_HiggsFrame_images_validation'],
+   jetDF['QCD_HiggsFrame_images_validation'] ])
+print("Stored H Images Validation")
 
-jetZImageTrain = numpy.concatenate([jetDF['W_ZFrame_images_train'], jetImagesDF['Z_ZFrame_images_train'], jetImagesDF['Z_ZFrame_images_train'], jetImagesDF['t_ZFrame_images_train'], jetImagesDF['b_ZFrame_images_train'], jetImagesDF['QCD_ZFrame_images_train'] ])
-jetZImageValidation = numpy.concatenate([jetDF['W_ZFrame_images_validation'], jetImagesDF['Z_ZFrame_images_validation'], jetImagesDF['Z_ZFrame_images_validation'], jetImagesDF['t_ZFrame_images_validation'], jetImagesDF['b_ZFrame_images_validation'], jetImagesDF['QCD_ZFrame_images_validation'] ])
+jetWImageTrain = numpy.concatenate([
+   jetDF['W_WFrame_images_train'],
+   jetDF['Z_WFrame_images_train'],
+   jetDF['Higgs_WFrame_images_train'],
+   jetDF['Top_WFrame_images_train'],
+   jetDF['b_WFrame_images_train'],
+   jetDF['QCD_WFrame_images_train'] ])
+print("Stored W Images Train")
 
-jetTImageTrain = numpy.concatenate([jetDF['W_TopFrame_images_train'], jetImagesDF['Z_TopFrame_images_train'], jetImagesDF['Z_TopFrame_images_train'], jetImagesDF['t_TopFrame_images_train'], jetImagesDF['b_TopFrame_images_train'], jetImagesDF['QCD_TopFrame_images_train'] ])
-jetTImageValidation = numpy.concatenate([jetDF['W_TopFrame_images_validation'], jetImagesDF['Z_TopFrame_images_validation'], jetImagesDF['Z_TopFrame_images_validation'], jetImagesDF['t_TopFrame_images_validation'], jetImagesDF['b_TopFrame_images_validation'], jetImagesDF['QCD_TopFrame_images_validation'] ])
+jetWImageValidation = numpy.concatenate([
+   jetDF['W_WFrame_images_validation'],
+   jetDF['Z_WFrame_images_validation'],
+   jetDF['Higgs_WFrame_images_validation'],
+   jetDF['Top_WFrame_images_validation'],
+   jetDF['b_WFrame_images_validation'],
+   jetDF['QCD_WFrame_images_validation'] ])
+print("Stored W Images Validation")
+
+jetZImageTrain = numpy.concatenate([
+   jetDF['W_ZFrame_images_train'],
+   jetDF['Z_ZFrame_images_train'],
+   jetDF['Higgs_ZFrame_images_train'],
+   jetDF['Top_ZFrame_images_train'],
+   jetDF['b_ZFrame_images_train'],
+   jetDF['QCD_ZFrame_images_train'] ])
+print("Stored Z Images Train")
+
+jetZImageValidation = numpy.concatenate([
+   jetDF['W_ZFrame_images_validation'],
+   jetDF['Z_ZFrame_images_validation'],
+   jetDF['Higgs_ZFrame_images_validation'],
+   jetDF['Top_ZFrame_images_validation'],
+   jetDF['b_ZFrame_images_validation'],
+   jetDF['QCD_ZFrame_images_validation'] ])
+print("Stored Z Images Validation")
+
+jetTImageTrain = numpy.concatenate([
+   jetDF['W_TopFrame_images_train'],
+   jetDF['Z_TopFrame_images_train'],
+   jetDF['Higgs_TopFrame_images_train'],
+   jetDF['Top_TopFrame_images_train'],
+   jetDF['b_TopFrame_images_train'],
+   jetDF['QCD_TopFrame_images_train'] ])
+print("Stored T Images Train")
+
+jetTImageValidation = numpy.concatenate([
+   jetDF['W_TopFrame_images_validation'],
+   jetDF['Z_TopFrame_images_validation'],
+   jetDF['Higgs_TopFrame_images_validation'],
+   jetDF['Top_TopFrame_images_validation'],
+   jetDF['b_TopFrame_images_validation'],
+   jetDF['QCD_TopFrame_images_validation'] ])
+print("Stored T Images Validation")
 
 jetImagesTrain = numpy.concatenate([jetHImageTrain, jetWImageTrain, jetZImageTrain, jetTImageTrain ])
-jetImagesValidation = numpy.concatenate([jetHImageValidation, jetWImageValidation, jetZImageValidation, jetTImageValidation ])
+print("Concatenated training images")
 jetImagesTrain = to_categorical(jetImagesTrain, num_classes = 6)
+print("Formatted concatenated training images")
+jetImagesValidation = numpy.concatenate([jetHImageValidation, jetWImageValidation, jetZImageValidation, jetTImageValidation ])
+print("Concatenated validation images")
 jetImagesValidation = to_categorical(jetImagesValidation, num_classes = 6)
+print("Formatted concatenated validation images")
+
+print("Finished Image Concatenation")
 
 
-jetBESvarsTrain = numpy.concatenate([jetDF['W_BES_vars_train'], jetImagesDF['Z_BES_vars_train'], jetImagesDF['Z_BES_vars_train'], jetImagesDF['t_BES_vars_train'], jetImagesDF['b_BES_vars_train'], jetImagesDF['QCD_BES_vars_train'] ])
-jetBESvarsValidation = numpy.concatenate([jetDF['W_BES_vars_validation'], jetImagesDF['Z_BES_vars_validation'], jetImagesDF['Z_BES_vars_validation'], jetImagesDF['t_BES_vars_validation'], jetImagesDF['b_BES_vars_validation'], jetImagesDF['QCD_BES_vars_validation'] ])
-
+jetBESvarsTrain = numpy.concatenate([jetDF['W_BES_vars_train'], jetDF['Z_BES_vars_train'], jetDF['Higgs_BES_vars_train'], jetDF['Top_BES_vars_train'], jetDF['b_BES_vars_train'], jetDF['QCD_BES_vars_train'] ])
+jetBESvarsValidation = numpy.concatenate([jetDF['W_BES_vars_validation'], jetDF['Z_BES_vars_validation'], jetDF['Higgs_BES_vars_validation'], jetDF['Top_BES_vars_validation'], jetDF['b_BES_vars_validation'], jetDF['QCD_BES_vars_validation'] ])
 jetBESvarsTrain = to_categorical(jetBESvarsTrain, num_classes = 6)
 jetBESvarsValidation = to_categorical(jetBESvarsValidation, num_classes = 6)
+print("Finished BESvars Concatenation")
 
 print("Stored data and truth information")
 
