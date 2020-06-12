@@ -30,6 +30,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import SGD
 from keras.layers import Input, Activation, Dense, SeparableConv2D, Conv2D, MaxPool2D, BatchNormalization, Dropout, Flatten, MaxoutDense
 from keras.layers import GRU, LSTM, ConvLSTM2D, Reshape
+from keras.layers import concatenate
 from keras.regularizers import l1,l2
 from keras.utils import np_utils, to_categorical, plot_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -68,13 +69,13 @@ for mySet in setTypes:
       globals()["jet"+myFrame+"Frame"+mySet] = []
    globals()["jetBESvars"+mySet] = []
       
-jetImagesTrain = [] #Should be a concatenation of XFrameImageTrain (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
-jetImagesValidation = [] #Should be a concatenation of XFrameImageValidation (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
+#jetImagesTrain = [] #Should be a concatenation of XFrameImageTrain (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
+#jetImagesValidation = [] #Should be a concatenation of XFrameImageValidation (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
 
 truthLabelsTrain = []
 truthLabelsValidation = []
 
-## and this makes 14 global variables to store data
+## and this makes 12 global variables to store data
 
 print(globals())
 
@@ -120,24 +121,36 @@ print("Finished Accessing H5 data")
 ## Order of categories: 0-W, 1-Z, 2-H, 3-t, 4-b, 5-QCD (order of sampleTypes). Format properly.
 print("To_Categorical")
 truthLabelsTrain = to_categorical(truthLabelsTrain, num_classes = 6)
-print("Made Truth Labels Train")
+print("Made Truth Labels Train", truthLabelsTrain.shape)
 truthLabelsValidation = to_categorical(truthLabelsValidation, num_classes = 6)
-print("Made Truth Labels Validation")
+print("Made Truth Labels Validation", truthLabelsValidation.shape)
 
 ## Concatenate Images: W, Z, Higgs, Top -> single
-print("Begin concatenating images")
-jetImagesTrain = numpy.concatenate([globals()["jet"+myFrame+"FrameTrain"] for myFrame in frameTypes])
-print("Concatenated training images")
-jetImagesValidation = numpy.concatenate([globals()["jet"+myFrame+"FrameValidation"] for myFrame in frameTypes])
-print("Concatenated validation images")
-print("Finished Image Concatenation")
+#print("Begin concatenating images")
+#jetImagesTrain = numpy.concatenate([globals()["jet"+myFrame+"FrameTrain"] for myFrame in frameTypes])
+#print("Concatenated training images", jetImagesTrain.shape)
+#jetImagesValidation = numpy.concatenate([globals()["jet"+myFrame+"FrameValidation"] for myFrame in frameTypes])
+#print("Concatenated validation images", jetImagesValidation.shape)
+#print("Finished Image Concatenation")
+print("BESvars Train Shape", jetBESvarsTrain.shape)
+print("BESvars Validation Shape", jetBESvarsValidation.shape)
+for myFrame in frameTypes:
+   print(myFrame+" Images Train Shape", globals()["jet"+myFrame+"FrameTrain"].shape)
+   print(myFrame+" Images Validation Shape", globals()["jet"+myFrame+"FrameValidation"].shape)
 
 print("Shuffle Train")
 rng_state = numpy.random.get_state()
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(truthLabelsTrain)
 numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetImagesTrain)
+#numpy.random.shuffle(jetImagesTrain)
+numpy.random.shuffle(jetWFrameTrain)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetZFrameTrain)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetHiggsFrameTrain)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetTopFrameTrain)
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(jetBESvarsTrain)
 
@@ -145,7 +158,14 @@ print("Shuffle Validation")
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(truthLabelsValidation)
 numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetImagesValidation)
+#numpy.random.shuffle(jetImagesValidation)
+numpy.random.shuffle(jetWFrameValidation)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetZFrameValidation)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetHiggsFrameValidation)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetTopFrameValidation)
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(jetBESvarsValidation)
 
@@ -274,7 +294,7 @@ besInputs = Input( shape=(BestShapeHolder, ) )
 besModel = Model(inputs = besInputs, outputs = besInputs)
 print (besModel.output)
 # Add BES variables to the network
-combined = numpy.concatenate([HiggsImageModel.output, TopImageModel.output, WImageModel.output, ZImageModel.output, besModel.output])
+combined = concatenate([WImageModel.output, ZImageModel.output, HiggsImageModel.output, TopImageModel.output, besModel.output])
 #Testing with just Higgs layer
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besModel.output])
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besInputs])
@@ -290,7 +310,7 @@ combLayer = Dropout(0.10)(combLayer)
 outputBEST = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(combLayer)
 
 # compile the model
-model_BEST = Model(inputs = [HiggsImageModel.input, TopImageModel.input, WImageModel.input, ZImageModel.input, besModel.input], outputs = outputBEST)
+model_BEST = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input, besModel.input], outputs = outputBEST)
 
 model_BEST.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -308,7 +328,7 @@ model_checkpoint = ModelCheckpoint('BEST_model.h5', monitor='val_loss',
                                    period=1)
 
 # train the neural network
-history = model_BEST.fit([jetImagesTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetImagesValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
+history = model_BEST.fit([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
 
 print("Trained the neural network!")
 
