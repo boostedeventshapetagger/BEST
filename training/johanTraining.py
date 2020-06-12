@@ -15,6 +15,7 @@ import tensorflow as tf
 import pickle
 import copy
 import random
+import numpy.random
 
 # get stuff from modules
 from sklearn import svm, metrics, preprocessing, neural_network, tree
@@ -52,174 +53,114 @@ print(sess.run(h))
 savePDF = False
 savePNG = True
 
-setTypes = ["train","validation","test"]
-sampleTypes = ["QCD","b","W","Z","Higgs","Top"]
-frameTypes = ["W","Z","H","t"]
+setTypes = ["Train","Validation"]
+sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
+frameTypes = ["W","Z","Higgs","Top"]
+
+BatchSize = 1200
 
 #==================================================================================
-# Load Jet Images /////////////////////////////////////////////////////////////////
+# Initialize what will be np arrays ////////////////////////////////////////////////////////////
 #==================================================================================
-
-## The standard scalar needs to be implemented
-
-# Load images from h5 file
-# put images in data frames
-jetDF = {} # Keys are "mySample_myKey_mySet", i.e. QCD_HiggsFrame_images_train
+# This will create a series of global variables like jetTopFrameTrain and jetHiggsFrameValidation and jetBESvarsTrain, (4frames+1BesVars)*2sets=10globVars
 for mySet in setTypes:
-   for mySample in sampleTypes:
-      myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet+"_flattened_standardized.h5","r")
-      for myKey in myF.keys():
-         jetDF[mySample+"_"+myKey+"_"+mySet] = myF[myKey][()]
-      myF.close()
+   for myFrame in frameTypes:
+      globals()["jet"+myFrame+"Frame"+mySet] = []
+   globals()["jetBESvars"+mySet] = []
+      
+jetImagesTrain = [] #Should be a concatenation of XFrameImageTrain (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
+jetImagesValidation = [] #Should be a concatenation of XFrameImageValidation (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
 
-print("Accessed Jet Images")
-print("Made image dataframes")
+truthLabelsTrain = []
+truthLabelsValidation = []
+
+## and this makes 14 global variables to store data
+
+print(globals())
+
+
+#==================================================================================
+# Load Data from  h5 //////////////////////////////////////////////////////////////
+#==================================================================================
+
+# Loop over 2sets*6samples=12 files
+for mySet in setTypes:
+   for index, mySample in enumerate(sampleTypes):
+      print("Opening "+mySample+mySet+" file")
+      myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
+      for myKey in myF.keys():
+         varKey = "jet"
+         if "image" in myKey.lower():
+            varKey = varKey+myKey.split("_")[0] # so HiggsFrame, TopFrame, etc
+         else:
+            varKey = varKey+"BESvars"
+         
+            ## Make TruthLabels, only once (i.e. for key=BESvars)
+            if globals()["truthLabels"+mySet] == []:
+               print("Making new", "truthLabels"+mySet)
+               globals()["truthLabels"+mySet] = numpy.full(len(myF[myKey][()]), index)
+            else:
+               print("Concatenate", "truthLabels"+mySet)
+               globals()["truthLabels"+mySet] = numpy.concatenate((globals()["truthLabels"+mySet], numpy.full(len(myF[myKey][()]), index)))
+               
+         varKey = varKey+mySet
+         
+         ## Append data
+         if globals()[varKey] == []:
+            print("Making new", varKey)
+            globals()[varKey] = myF[myKey][()]
+         else:
+            print("Concatenate", varKey)
+            globals()[varKey] = numpy.concatenate((globals()[varKey], myF[myKey][()]))
+            
+      myF.close()
+      
+print("Finished Accessing H5 data")
+
+## Order of categories: 0-W, 1-Z, 2-H, 3-t, 4-b, 5-QCD (order of sampleTypes). Format properly.
+print("To_Categorical")
+truthLabelsTrain = to_categorical(truthLabelsTrain, num_classes = 6)
+print("Made Truth Labels Train")
+truthLabelsValidation = to_categorical(truthLabelsValidation, num_classes = 6)
+print("Made Truth Labels Validation")
+
+## Concatenate Images: W, Z, Higgs, Top -> single
+print("Begin concatenating images")
+jetImagesTrain = numpy.concatenate([globals()["jet"+myFrame+"FrameTrain"] for myFrame in frameTypes])
+print("Concatenated training images")
+jetImagesValidation = numpy.concatenate([globals()["jet"+myFrame+"FrameValidation"] for myFrame in frameTypes])
+print("Concatenated validation images")
+print("Finished Image Concatenation")
+
+print("Shuffle Train")
+rng_state = numpy.random.get_state()
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(truthLabelsTrain)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetImagesTrain)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetBESvarsTrain)
+
+print("Shuffle Validation")
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(truthLabelsValidation)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetImagesValidation)
+numpy.random.set_state(rng_state)
+numpy.random.shuffle(jetBESvarsValidation)
+
+
+print("Stored data and truth information")
 
 #==================================================================================
 # Train the Neural Network ////////////////////////////////////////////////////////
 #==================================================================================
-
-# Store data and truth
-# print("Number of QCD Jet Images: ", len(jetDF['QCD_HiggsFrame_images_train']) )
-# print("Number of Higgs Jet Images: ", len(jetImagesDF['HH']) )
-# print("Number of W Jet Images: ", len(jetImagesDF['WW']) )
-# print("Number of Z Jet Images: ", len(jetImagesDF['ZZ']) )
-# print("Number of t Jet Images: ", len(jetImagesDF['tt']) )
-# print("Number of b Jet Images: ", len(jetImagesDF['bb']) )
-
-## Order of categories: 0-W, 1-Z, 2-H, 3-t, 4-b, 5-QCD
-truthLabelsTrain = numpy.concatenate([
-   numpy.zeros(len(jetDF['W_BES_vars_train']) ),
-   numpy.ones(len(jetDF['Z_BES_vars_train']) ),
-   numpy.full(len(jetDF['Higgs_BES_vars_train']), 2),
-   numpy.full(len(jetDF['Top_BES_vars_train']), 3),
-   numpy.full(len(jetDF['b_BES_vars_train']), 4),
-   numpy.full(len(jetDF['QCD_BES_vars_train']), 5)] )
-truthLabelsTrain = to_categorical(truthLabelsTrain, num_classes = 6)
-print("Made Truth Labels Train")
-
-truthLabelsValidation = numpy.concatenate([
-   numpy.zeros(len(jetDF['W_BES_vars_validation']) ),
-   numpy.ones(len(jetDF['Z_BES_vars_validation']) ),
-   numpy.full(len(jetDF['Higgs_BES_vars_validation']), 2),
-   numpy.full(len(jetDF['Top_BES_vars_validation']), 3),
-   numpy.full(len(jetDF['b_BES_vars_validation']), 4),
-   numpy.full(len(jetDF['QCD_BES_vars_validation']), 5)] )
-truthLabelsValidation = to_categorical(truthLabelsValidation, num_classes = 6)
-print("Made Truth Labels Validation")
-
-jetHImageTrain = numpy.concatenate([
-   jetDF['W_HiggsFrame_images_train'],
-   jetDF['Z_HiggsFrame_images_train'],
-   jetDF['Higgs_HiggsFrame_images_train'],
-   jetDF['Top_HiggsFrame_images_train'],
-   jetDF['b_HiggsFrame_images_train'],
-   jetDF['QCD_HiggsFrame_images_train'] ])
-print("Stored H Images Train")
-
-jetHImageValidation = numpy.concatenate([
-   jetDF['W_HiggsFrame_images_validation'],
-   jetDF['Z_HiggsFrame_images_validation'],
-   jetDF['Higgs_HiggsFrame_images_validation'],
-   jetDF['Top_HiggsFrame_images_validation'],
-   jetDF['b_HiggsFrame_images_validation'],
-   jetDF['QCD_HiggsFrame_images_validation'] ])
-print("Stored H Images Validation")
-
-jetWImageTrain = numpy.concatenate([
-   jetDF['W_WFrame_images_train'],
-   jetDF['Z_WFrame_images_train'],
-   jetDF['Higgs_WFrame_images_train'],
-   jetDF['Top_WFrame_images_train'],
-   jetDF['b_WFrame_images_train'],
-   jetDF['QCD_WFrame_images_train'] ])
-print("Stored W Images Train")
-
-jetWImageValidation = numpy.concatenate([
-   jetDF['W_WFrame_images_validation'],
-   jetDF['Z_WFrame_images_validation'],
-   jetDF['Higgs_WFrame_images_validation'],
-   jetDF['Top_WFrame_images_validation'],
-   jetDF['b_WFrame_images_validation'],
-   jetDF['QCD_WFrame_images_validation'] ])
-print("Stored W Images Validation")
-
-jetZImageTrain = numpy.concatenate([
-   jetDF['W_ZFrame_images_train'],
-   jetDF['Z_ZFrame_images_train'],
-   jetDF['Higgs_ZFrame_images_train'],
-   jetDF['Top_ZFrame_images_train'],
-   jetDF['b_ZFrame_images_train'],
-   jetDF['QCD_ZFrame_images_train'] ])
-print("Stored Z Images Train")
-
-jetZImageValidation = numpy.concatenate([
-   jetDF['W_ZFrame_images_validation'],
-   jetDF['Z_ZFrame_images_validation'],
-   jetDF['Higgs_ZFrame_images_validation'],
-   jetDF['Top_ZFrame_images_validation'],
-   jetDF['b_ZFrame_images_validation'],
-   jetDF['QCD_ZFrame_images_validation'] ])
-print("Stored Z Images Validation")
-
-jetTImageTrain = numpy.concatenate([
-   jetDF['W_TopFrame_images_train'],
-   jetDF['Z_TopFrame_images_train'],
-   jetDF['Higgs_TopFrame_images_train'],
-   jetDF['Top_TopFrame_images_train'],
-   jetDF['b_TopFrame_images_train'],
-   jetDF['QCD_TopFrame_images_train'] ])
-print("Stored T Images Train")
-
-jetTImageValidation = numpy.concatenate([
-   jetDF['W_TopFrame_images_validation'],
-   jetDF['Z_TopFrame_images_validation'],
-   jetDF['Higgs_TopFrame_images_validation'],
-   jetDF['Top_TopFrame_images_validation'],
-   jetDF['b_TopFrame_images_validation'],
-   jetDF['QCD_TopFrame_images_validation'] ])
-print("Stored T Images Validation")
-
-jetImagesTrain = numpy.concatenate([jetHImageTrain, jetWImageTrain, jetZImageTrain, jetTImageTrain ])
-print("Concatenated training images")
-jetImagesTrain = to_categorical(jetImagesTrain, num_classes = 6)
-print("Formatted concatenated training images")
-jetImagesValidation = numpy.concatenate([jetHImageValidation, jetWImageValidation, jetZImageValidation, jetTImageValidation ])
-print("Concatenated validation images")
-jetImagesValidation = to_categorical(jetImagesValidation, num_classes = 6)
-print("Formatted concatenated validation images")
-
-print("Finished Image Concatenation")
-
-
-jetBESvarsTrain = numpy.concatenate([jetDF['W_BES_vars_train'], jetDF['Z_BES_vars_train'], jetDF['Higgs_BES_vars_train'], jetDF['Top_BES_vars_train'], jetDF['b_BES_vars_train'], jetDF['QCD_BES_vars_train'] ])
-jetBESvarsValidation = numpy.concatenate([jetDF['W_BES_vars_validation'], jetDF['Z_BES_vars_validation'], jetDF['Higgs_BES_vars_validation'], jetDF['Top_BES_vars_validation'], jetDF['b_BES_vars_validation'], jetDF['QCD_BES_vars_validation'] ])
-jetBESvarsTrain = to_categorical(jetBESvarsTrain, num_classes = 6)
-jetBESvarsValidation = to_categorical(jetBESvarsValidation, num_classes = 6)
-print("Finished BESvars Concatenation")
-
-print("Stored data and truth information")
-
-#print("Number of QCD jets in training: ", numpy.sum(trainTruth == 0) )
-#print("Number of H jets in training: ", numpy.sum(trainTruth == 1) )
-#print("Number of W jets in training: ", numpy.sum(trainTruth == 2) )
-
-#print("Number of QCD jets in testing: ", numpy.sum(testTruth == 0) )
-#print("Number of H jets in testing: ", numpy.sum(testTruth == 1) )
-#print("Number of W jets in testing: ", numpy.sum(testTruth == 2) )
-
-
-# Define the Neural Network Structure
-#print("NN input shape: ", trainData.shape[1], trainData.shape[2], trainData.shape[3] )
-
-# put images and BES variables in data frames
+# Shape parameters
 arbitrary_length = 10 #Hopefully this number doesn't matter
 nx = 31
 ny = 31
 ImageShapeHolder = numpy.zeros((arbitrary_length, nx, ny, 1))
-BestShapeHolder = 94
-
-BatchSize = 1200
+BestShapeHolder = 106
 
 HiggsImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
 
@@ -333,7 +274,7 @@ besInputs = Input( shape=(BestShapeHolder, ) )
 besModel = Model(inputs = besInputs, outputs = besInputs)
 print (besModel.output)
 # Add BES variables to the network
-combined = concatenate([HiggsImageModel.output, TopImageModel.output, WImageModel.output, ZImageModel.output, besModel.output])
+combined = numpy.concatenate([HiggsImageModel.output, TopImageModel.output, WImageModel.output, ZImageModel.output, besModel.output])
 #Testing with just Higgs layer
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besModel.output])
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besInputs])
@@ -367,7 +308,7 @@ model_checkpoint = ModelCheckpoint('BEST_model.h5', monitor='val_loss',
                                    period=1)
 
 # train the neural network
-history = model_BEST.fit([jetImagesTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=1000, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetImagesValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
+history = model_BEST.fit([jetImagesTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetImagesValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
 
 print("Trained the neural network!")
 
