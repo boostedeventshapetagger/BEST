@@ -147,6 +147,16 @@ def getProbabilities(h5Dir, listOfSamples, myType, bins, binSize, maxRange, flat
     return probs 
 
 # Main function should take in arguments and call the functions you want
+# -s is the samples to process: if 'all' then it does QCD,W,Z,Top,b,Higgs. Else you can provide a comma separated list
+# -st is the types of sample sets to process, i.e. train, validation, test. If 'all' then it does these three but also the pre-split samples
+# -b is the batch size to do the copying when flattening. This is a performance hyper-parameter. The output is unaffected.
+# -fi flattenIndex is the BESvars index to flatten on. Currenltly the default is 35 since that corresponds to pt in the current samples.
+# -rl rangeLow is the lower limit to set the bins. Anything below this will always be rejected.
+# -rh rangeHigh is the upper limit to set the bins. Anything above this will always be rejected.
+# -nb is the number of bins for the flattening range. Bin size is set by (rl-rh)/nbins.
+# -hd is the path to the location of the input h5 files
+# -o is the path to the location where to send the outputs
+# -d enables the debugging flag with all print statements
 if __name__ == "__main__":
     
     # Take in arguments
