@@ -1,3 +1,15 @@
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# flattener.py /////////////////////////////////////////////////////
+#==================================================================================
+# Author(s): Johan S Bonilla, Brendan Regnery, Reyer Band -------------------------
+# This program takes in h5 files and equalizes the number of events based on pt ///
+# Inputs should be h5 files after splitting the samples
+# The process plots the various files and, bin by bin, keeps all events of the
+# least populous sample, and throws away events based on probabilty ratio
+# P=NumEventsMinSample/NumEventsThisSample
+# Output are h5 samples.
+#----------------------------------------------------------------------------------
+
 import h5py
 import argparse
 import os
@@ -8,8 +20,13 @@ from sklearn.model_selection import train_test_split
 listOfSamples = ["b","Higgs","QCD","Top","W","Z"]
 listOfSampleTypess = ["","train","validation","test"]
 
+## Loop over all files and keep/reject events in batches. One uses train_test_split to do the heavy lifting.
+## The random state in the function ensures the same mask across the keys. Since the probabilities are binned in pt,
+## one must loop over all pt bins and evaluate keep/reject for each.
 def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex, userBatchSize):
     print("Begin flattening for", myType)
+    
+    ## Loop over all samples and flatten each one by one. Probabilities have been previously calculated and passed in
     for mySample in listOfSamples:
         filePath = h5Dir+mySample+'Sample_BESTinputs'
         if myType == "":
@@ -22,16 +39,22 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
         counter = 0
         totalEvents = fIn[fIn.keys()[0]].shape[0]
         print("Begin batching for sample", mySample, "total events", totalEvents)
+
+        ## Perform the keep/throw-away opration in batches. Counter eventually reaches end of numEvents in file. Incrementer at end of while loop
         while (counter < totalEvents):
             batchSize = userBatchSize if (totalEvents > counter+userBatchSize) else (totalEvents-counter)
             print("Batch size", batchSize, "at", counter)
+
+            # Grab pt part of dataset to evaluate whether to keep or reject event
             myPtData = np.array(fIn["BES_vars"][counter:counter+batchSize,flattenIndex])
             print("Shape of myPtData", myPtData.shape)
 
+            # For each key in dataset, take partial dataset and copy or reject. Note the random state below ensures the same set of events are kept or rejected 
             for myKey in fIn.keys():
                 print("Key", myKey)
                 myKeyData = np.array(fIn[myKey][counter:counter+batchSize,...])
-                print("Shape of myKeyData", myKeyData.shape)      
+                print("Shape of myKeyData", myKeyData.shape)
+                # Loop over bins (events in dataset may belong to any pt-bin)
                 for binIndex in range(0,len(bins)):
                     myProbability = keepProbs[listOfSamples.index(mySample)][binIndex]
                     if myProbability == 0:
@@ -56,6 +79,7 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
                     if len(output) == 0:
                         print("Output has no events in bin, continue to next bin")
                         continue
+                    # Store kept data
                     if not myKey in besData.keys():
                         print("Making new datset")
                         if "frame" in myKey.lower():
@@ -69,6 +93,7 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
                         besData[myKey][-len(output) :] = output
             counter += batchSize
 
+## Plot samples in pt (or variable of choice) and return a list of probabilities for keeping events
 def getProbabilities(h5Dir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex):
     print("Begin making probabilities array")
     probs = [] # First axis is listOfSamples, second axis is ptBins, values are probability to keep event in sample,ptBin
@@ -118,11 +143,7 @@ def getProbabilities(h5Dir, listOfSamples, myType, bins, binSize, maxRange, flat
             else:
                 binnedProbs.append(0.)
         probs.append(binnedProbs)
-        #print("Sample: ",listOfSamples[sampleIndex])
-        #print("Bins: ", bins)
-        #print("Probabilities", binnedProbs)
 
-    #print(probs)
     return probs 
 
 # Main function should take in arguments and call the functions you want
@@ -188,10 +209,3 @@ if __name__ == "__main__":
         keepProbs = getProbabilities(args.h5Dir, listOfSamples, myType, bins, binSize, args.rangeHigh, args.flattenIndex)
         flattenFile(keepProbs, args.h5Dir, listOfSamples, myType, bins, binSize, args.rangeHigh, args.flattenIndex, args.batchSize)
 
-    #for mySample in listOfSamples:
-     #   f = h5py.File('WSample_BESTinputs_test.h5', 'r')
-#myData = f["BES_vars"]
-#myDataPt = np.array(myData[...,35])
-#myDataBool = myDataPt>1000
-#mx = ma.masked_array(myDataPt, mask=myDataBool)
-#myFinal = mx[~mx.mask]
