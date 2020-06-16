@@ -264,10 +264,6 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
         sumP += abs( thisParticleLV.P() );
     }
 
-    // make the rest frame jet images
-    boostedDaughters[frame+"Frame"] = boostedCands;
-    imgVars[frame+"Frame_image"] = boostedJetCamera(boostedCands);
-
     // Fox Wolfram Moments
     double fwm[5] = { 0.0, 0.0 ,0.0 ,0.0,0.0};
     FWMoments( particles, fwm);
@@ -298,10 +294,12 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     restJets[frame+"Frame"] = jetsFJ;
 
     // Store reclustered jet info
+    std::vector<TLorentzVector> rotationJets;
     for(unsigned int i = 0; i < jetsFJ.size(); i++){
 
         // make a TLorentzVector for the current clustered rest frame jet
         TLorentzVector iJetLV(jetsFJ[i].px(), jetsFJ[i].py(), jetsFJ[i].pz(), jetsFJ[i].e() );
+	rotationJets.append(iJetLV);
 
         // get fest frame jet four vector combinations
         switch(i){
@@ -333,6 +331,10 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
             break;
         }
     }
+    
+    // make the rest frame jet images
+    boostedDaughters[frame+"Frame"] = boostedCands;
+    imgVars[frame+"Frame_image"] = boostedJetCamera(rotationJets);
 
     // Store reclustered jet mass combinations
     besVars["jet12_mass_"+frame]   = jet12LV.M();
