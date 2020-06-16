@@ -11,7 +11,7 @@ from collections import OrderedDict
 class GenerateBatch(object):
    def __init__(self, batch_size = 1200, validation_frac = 0.1, smearImage = False, debug_info = False, debug_plots = False):
       #File list should be a dict mapping the class to the file
-      filelist = {'QCD' : 'images/QCDTransformed.h5', 'H' : 'images/HTransformed.h5', 't' : 'images/tTransformed.h5', 'W' : 'images/WTransformed.h5', 'Z' : 'images/ZTransformed.h5', 'B' : 'images/BTransformed.h5'}
+      filelist = {'QCD' : 'images/QCDTransformed.h5', 'H' : 'images/HTransformed.h5', 't' : 'images/TTransformed.h5', 'W' : 'images/WTransformed.h5', 'Z' : 'images/ZTransformed.h5', 'B' : 'images/BTransformed.h5'}
       weightfilelist = {'QCD' : 'PtWeights/QCDEventWeights.h5', 'H' : 'PtWeights/HEventWeights.h5', 't' : 'PtWeights/tEventWeights.h5', 'W' : 'PtWeights/WEventWeights.h5', 'Z' : 'PtWeights/ZEventWeights.h5', 'B' : 'PtWeights/BEventWeights.h5'}
       self.filelist = filelist
       self.weightfilelist = weightfilelist
@@ -50,13 +50,15 @@ class GenerateBatch(object):
       for flavor in self.classes:
          temp_file = h5py.File(self.filelist[flavor], "r")
          for label in self.inputs:
-            data_dict[flavor+'_'+label] = temp_file[flavor+'_'+label][()]
+            datFlav = flavor
+            if datFlav == 't': datFlav = 'T'
+            data_dict[datFlav+'_'+label] = temp_file[datFlav+'_'+label][()]
          temp_file.close()
       print ('Loaded All Data Into Memory')
       if self.debug_plots:
-         print (len(data_dict['QCD_BES']), len(data_dict['H_BES']), len(data_dict['t_BES']), len(data_dict['W_BES']), len(data_dict['Z_BES']), len(data_dict['B_BES']))
+         print (len(data_dict['QCD_BES']), len(data_dict['H_BES']), len(data_dict['T_BES']), len(data_dict['W_BES']), len(data_dict['Z_BES']), len(data_dict['B_BES']))
          print (len(data_dict['QCD_BES']), len(data_dict['QCD_BES'][0]))
-         self.besInput_Labels =  ['jetAK8_pt', 'jetAK8_mass', 'jetAK8_SoftDropMass', 'nSecondaryVertices', 'bDisc', 'bDisc1', 'bDisc2', 'jetAK8_Tau4', 'jetAK8_Tau3', 'jetAK8_Tau2', 'jetAK8_Tau1', 'jetAK8_Tau32', 'jetAK8_Tau21', 'FoxWolfH1_Higgs', 'FoxWolfH2_Higgs', 'FoxWolfH3_Higgs', 'FoxWolfH4_Higgs', 'FoxWolfH1_Top', 'FoxWolfH2_Top', 'FoxWolfH3_Top', 'FoxWolfH4_Top', 'FoxWolfH1_W', 'FoxWolfH2_W', 'FoxWolfH3_W', 'FoxWolfH4_W', 'FoxWolfH1_Z', 'FoxWolfH2_Z', 'FoxWolfH3_Z', 'FoxWolfH4_Z', 'isotropy_Higgs', 'sphericity_Higgs', 'aplanarity_Higgs', 'thrust_Higgs', 'sphericity_Top', 'aplanarity_Top', 'thrust_Top', 'sphericity_W', 'aplanarity_W', 'thrust_W', 'sphericity_Z', 'aplanarity_Z', 'thrust_Z', 'nSubjets_Higgs', 'nSubjets_Top', 'nSubjets_W', 'nSubjets_Z', 'subjet12_mass_Higgs', 'subjet23_mass_Higgs', 'subjet13_mass_Higgs', 'subjet1234_mass_Higgs', 'subjet12_mass_Top', 'subjet23_mass_Top', 'subjet13_mass_Top', 'subjet1234_mass_Top', 'subjet12_mass_W', 'subjet23_mass_W', 'subjet13_mass_W', 'subjet1234_mass_W', 'subjet12_mass_Z', 'subjet23_mass_Z', 'subjet13_mass_Z', 'subjet1234_mass_Z', 'subjet12_CosTheta_Higgs', 'subjet23_CosTheta_Higgs', 'subjet13_CosTheta_Higgs', 'subjet1234_CosTheta_Higgs', 'subjet12_CosTheta_Top', 'subjet23_CosTheta_Top', 'subjet13_CosTheta_Top', 'subjet1234_CosTheta_Top', 'subjet12_CosTheta_W', 'subjet23_CosTheta_W', 'subjet13_CosTheta_W', 'subjet1234_CosTheta_W', 'subjet12_CosTheta_Z', 'subjet23_CosTheta_Z', 'subjet13_CosTheta_Z', 'subjet1234_CosTheta_Z', 'subjet12_DeltaCosTheta_Higgs', 'subjet13_DeltaCosTheta_Higgs', 'subjet23_DeltaCosTheta_Higgs', 'subjet12_DeltaCosTheta_Top', 'subjet13_DeltaCosTheta_Top', 'subjet23_DeltaCosTheta_Top', 'subjet12_DeltaCosTheta_W', 'subjet13_DeltaCosTheta_W', 'subjet23_DeltaCosTheta_W', 'subjet12_DeltaCosTheta_Z', 'subjet13_DeltaCosTheta_Z', 'subjet23_DeltaCosTheta_Z', 'asymmetry_Higgs', 'asymmetry_Top', 'asymmetry_W', 'asymmetry_Z']
+         self.besInput_Labels =  ['jetAK8_pt', 'jetAK8_mass', 'jetAK8_SoftDropMass', 'nSecondaryVertices', 'bDisc', 'bDisc1', 'bDisc2', 'jetAK8_Tau4', 'jetAK8_Tau3', 'jetAK8_Tau2', 'jetAK8_Tau1', 'jetAK8_Tau32', 'jetAK8_Tau21', 'FoxWolfH1_Higgs', 'FoxWolfH2_Higgs', 'FoxWolfH3_Higgs', 'FoxWolfH4_Higgs', 'FoxWolfH1_Top', 'FoxWolfH2_Top', 'FoxWolfH3_Top', 'FoxWolfH4_Top', 'FoxWolfH1_W', 'FoxWolfH2_W', 'FoxWolfH3_W', 'FoxWolfH4_W', 'FoxWolfH1_Z', 'FoxWolfH2_Z', 'FoxWolfH3_Z', 'FoxWolfH4_Z', 'isotropy_Higgs', 'sphericity_Higgs', 'aplanarity_Higgs', 'thrust_Higgs', 'sphericity_Top', 'aplanarity_Top', 'thrust_Top', 'sphericity_W', 'aplanarity_W', 'thrust_W', 'sphericity_Z', 'aplanarity_Z', 'thrust_Z', 'njets_Higgs', 'njets_Top', 'njets_W', 'njets_Z', 'jet12_mass_Higgs', 'jet23_mass_Higgs', 'jet13_mass_Higgs', 'jet1234_mass_Higgs', 'jet12_mass_Top', 'jet23_mass_Top', 'jet13_mass_Top', 'jet1234_mass_Top', 'jet12_mass_W', 'jet23_mass_W', 'jet13_mass_W', 'jet1234_mass_W', 'jet12_mass_Z', 'jet23_mass_Z', 'jet13_mass_Z', 'jet1234_mass_Z', 'jet12_CosTheta_Higgs', 'jet23_CosTheta_Higgs', 'jet13_CosTheta_Higgs', 'jet1234_CosTheta_Higgs', 'jet12_CosTheta_Top', 'jet23_CosTheta_Top', 'jet13_CosTheta_Top', 'jet1234_CosTheta_Top', 'jet12_CosTheta_W', 'jet23_CosTheta_W', 'jet13_CosTheta_W', 'jet1234_CosTheta_W', 'jet12_CosTheta_Z', 'jet23_CosTheta_Z', 'jet13_CosTheta_Z', 'jet1234_CosTheta_Z', 'jet12_DeltaCosTheta_Higgs', 'jet13_DeltaCosTheta_Higgs', 'jet23_DeltaCosTheta_Higgs', 'jet12_DeltaCosTheta_Top', 'jet13_DeltaCosTheta_Top', 'jet23_DeltaCosTheta_Top', 'jet12_DeltaCosTheta_W', 'jet13_DeltaCosTheta_W', 'jet23_DeltaCosTheta_W', 'jet12_DeltaCosTheta_Z', 'jet13_DeltaCosTheta_Z', 'jet23_DeltaCosTheta_Z', 'asymmetry_Higgs', 'asymmetry_Top', 'asymmetry_W', 'asymmetry_Z']
          print(len(self.besInput_Labels))
          for i in range(0,len(data_dict['QCD_BES'][0])):
             if 'nSub' in self.besInput_Labels[i]: var_range = [3, 54]
@@ -206,20 +208,22 @@ class GenerateBatch(object):
          if 'BES' not in key:
             temp_image_train_list.append(numpy.zeros((len(keep_train_list), 31, 31, 1))) 
 
+      keyPart = particle_key
+      if keyPart == 't': keyPart = 'T'
 
       for i, key in enumerate(self.inputs):
          if 'BES' not in key:
             for n, index in enumerate(keep_train_list):
-               temp_image_train_list[i][n] = self.data[particle_key+'_'+key][index]
+               temp_image_train_list[i][n] = self.data[keyPart+'_'+key][index]
                if self.debug_info and n is 0 and i is 0:
-                  print (key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index]))
+                  print (key, type(self.data[keyPart+'_'+key][index]), len(self.data[keyPart+'_'+key][index]))
 
 
          if 'BES' in key:
             for n, index in enumerate(keep_train_list):
-               best_vars_train_list.append(self.data[particle_key+'_'+key][index])
+               best_vars_train_list.append(self.data[keyPart+'_'+key][index])
                if self.debug_info and n is 0:
-                  print (key, type(self.data[particle_key+'_'+key][index]), len(self.data[particle_key+'_'+key][index]))
+                  print (key, type(self.data[keyPart+'_'+key][index]), len(self.data[keyPart+'_'+key][index]))
 
                   
 #      print(len(best_vars_train_list), len(best_vars_train_list[0]), batch_type, particle_key)

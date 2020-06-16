@@ -1,7 +1,8 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# trainBEST.py ////////////////////////////////////////////////////////////////////
+# MakeFlatWeights.py //////////////////////////////////////////////////////////////
 #==================================================================================
-# This program trains BEST: The Boosted Event Shape Tagger ////////////////////////
+# Author(s): Reyer Band ///////////////////////////////////////////////////////////
+# This assigns weights for flattening pT //////////////////////////////////////////
 #==================================================================================
 
 # modules
@@ -24,6 +25,9 @@ from sklearn.externals import joblib
 
 # set up keras
 
+# enter batch mode in root (so python can access displays)
+r.gROOT.SetBatch(True)
+
 
 # Print which gpu/cpu this is running on
 
@@ -35,30 +39,28 @@ plotInputs = True
 # Load Jet Images /////////////////////////////////////////////////////////////////
 #==================================================================================
 
-# Load images from h5 file
-#h5f = h5py.File("images/phiCosThetaBoostedJetImages.h5","r")
-
 # put images and BES variables in data frames
+jetDF = {}
 jetLabETDF = {}
-QCD = h5py.File("images/QCD.h5","r")
-jetLabETDF['QCD'] = QCD['QCD_LabFrameET'][()]
+QCD = h5py.File("../formatConverter/h5samples/QCDSample_BESTinputs.h5","r")
+jetLabETDF['QCD'] = QCD['BES_vars'][...,28] # Make sure this index is correct if you change something!
+                                            # This can be done in the formatConverter, make sure this is the index corresponding to pT
 QCD.close()
-H = h5py.File("images/HH.h5","r")
-jetLabETDF['H'] = H['HH_LabFrameET'][()]
+H = h5py.File("../formatConverter/h5samples/HiggsSample_BESTinputs.h5","r")
+jetLabETDF['H'] = H['BES_vars'][...,28]
+print jetLabETDF['H']
 H.close()
-T = h5py.File("images/tt.h5","r")
-jetLabETDF['t'] = T['tt_LabFrameET'][()]
+T = h5py.File("../formatConverter/h5samples/TopSample_BESTinputs.h5","r")
+jetLabETDF['t'] = T['BES_vars'][...,28]
 T.close()
-W = h5py.File("images/WW.h5","r")
-jetLabETDF['W'] = W['WW_LabFrameET'][()]
+W = h5py.File("../formatConverter/h5samples/WSample_BESTinputs.h5","r")
+jetLabETDF['W'] = W['BES_vars'][...,28]
 W.close()
-Z = h5py.File("images/ZZ.h5","r")
-jetLabETDF['Z'] = Z['ZZ_LabFrameET'][()]
-
-
-
-B = h5py.File("images/BB.h5","r")
-jetLabETDF['B'] = B['BB_LabFrameET'][()]
+Z = h5py.File("../formatConverter/h5samples/ZSample_BESTinputs.h5","r")
+jetLabETDF['Z'] = Z['BES_vars'][...,28]
+Z.close()
+B = h5py.File("../formatConverter/h5samples/bSample_BESTinputs.h5","r")
+jetLabETDF['B'] = B['BES_vars'][...,28]
 B.close()
 
 
