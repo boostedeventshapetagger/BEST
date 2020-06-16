@@ -299,7 +299,7 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
 
         // make a TLorentzVector for the current clustered rest frame jet
         TLorentzVector iJetLV(jetsFJ[i].px(), jetsFJ[i].py(), jetsFJ[i].pz(), jetsFJ[i].e() );
-	rotationJets.append(iJetLV);
+	rotationJets.push_back(iJetLV);
 
         // get fest frame jet four vector combinations
         switch(i){
