@@ -334,7 +334,7 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     
     // make the rest frame jet images
     boostedDaughters[frame+"Frame"] = boostedCands;
-    imgVars[frame+"Frame_image"] = boostedJetCamera(rotationJets);
+    imgVars[frame+"Frame_image"] = boostedJetCamera(boostedCands, rotationJets);
 
     // Store reclustered jet mass combinations
     besVars["jet12_mass_"+frame]   = jet12LV.M();
@@ -423,22 +423,23 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
 // Image = the container for the jet image -----------------------------------------------
 //----------------------------------------------------------------------------------------
 
-std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands){
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands, std::vector<TLorentzVector> &reclusteredJets){
 
     // create a place to store the image
     std::array<std::array<std::array<float, 1>, 31>, 31> Image;
 
-    //Sort the new list of particle flow candidates in the rest rame by energy
+    //Sort the new list of particle flow candidates and reclustered jets in the rest rame by energy
     auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
     std::sort(boostedCands.begin(), boostedCands.end(), sortLambda);
+    std::sort(reclusteredJets.begin(), reclusteredJets.end(), sortLambda);
 
     //------------------------------------------------------------------------------------
     // Rotations in the rest frame -------------------------------------------------------
     //------------------------------------------------------------------------------------
 
-    // define the rotation angles for the first two rotations
-    float rotPhi = boostedCands.at(0).Phi();
-    float rotTheta = boostedCands.at(0).Theta();
+    // define the rotation angles for the first two rotations based on Reclusterd Jets
+    float rotPhi = reclusteredJets.at(0).Phi();
+    float rotTheta = reclusteredJets.at(0).Theta();
 
     // perform the first two rotations and sum energy
     float candNum = 0;
@@ -458,10 +459,30 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
 
         candNum++;
     }
+    
+    // Also rotate the reclustered jets
+    float jetNum = 0;
+    for(auto ijet = reclusteredJets.begin(); ijet != reclusteredJets.end(); ijet++){
 
-    // create the rotation angle for the third rotation
-    float subPsi = TMath::ATan2(boostedCands.at(1).Py(), boostedCands.at(1).Pz());
+        // rotate all jets so that the leading candidate is in the x y plane
+        ijet->RotateZ(-rotPhi);
 
+        // make sure the leading candidate has been fully rotated
+        if(jetNum == 0) ijet->SetPy(0);
+
+        // rotate all candidates so that the leading jet is on the x axis
+        ijet->RotateY(TMath::Pi()/2.0 - rotTheta);
+
+        // make sure the leading jet has been fully rotated
+        if(jetNum == 0) ijet->SetPz(0);
+
+        jetNum++;
+    }
+
+    // create the rotation angle for the third rotation based on reclustered jets
+    float subPsi = TMath::ATan2(reclusteredJets.at(1).Py(), reclusteredJets.at(1).Pz());
+
+    // Rotate PF cands
     candNum = 0;
     for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
 
@@ -474,6 +495,20 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
         candNum++;
     }
 
+    // Rotate reclusterd jets
+    jetNum = 0;
+    for(auto ijet = reclusteredJets.begin(); ijet != reclusteredJets.end(); ijet++){
+
+        // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
+        ijet->RotateX(subPsi - TMath::Pi()/2.0);
+
+        // make sure the leading candidate has been fully rotated
+        if(jetNum == 1) ijet->SetPz(0);
+
+        jetNum++;
+    }
+
+    
     //Reflect if necessary
     float rightSum = 0;
     float leftSum = 0;

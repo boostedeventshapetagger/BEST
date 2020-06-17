@@ -59,7 +59,7 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
                        std::map<std::string, std::vector<float> > &jetVecVars, int jetColl );
 
 // make the rest frame jet images
-std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands);
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands, std::vector<TLorentzVector> &reclusteredJets);
 
 // make rest frame z axis the boost axis
 void pboost( TVector3 pbeam, TVector3 plab, TLorentzVector &pboo );
