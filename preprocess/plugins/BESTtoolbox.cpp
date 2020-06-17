@@ -448,14 +448,9 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
         // rotate all candidates so that the leading candidate is in the x y plane
         icand->RotateZ(-rotPhi);
 
-        // make sure the leading candidate has been fully rotated
-        if(candNum == 0) icand->SetPy(0);
-
         // rotate all candidates so that the leading candidate is on the x axis
         icand->RotateY(TMath::Pi()/2.0 - rotTheta);
 
-        // make sure the leading candidate has been fully rotated
-        if(candNum == 0) icand->SetPz(0);
 
         candNum++;
     }
@@ -488,9 +483,6 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
 
         // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
         icand->RotateX(subPsi - TMath::Pi()/2.0);
-
-        // make sure the leading candidate has been fully rotated
-        if(candNum == 1) icand->SetPz(0);
 
         candNum++;
     }
