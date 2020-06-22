@@ -46,7 +46,7 @@ if __name__ == "__main__":
             myPtArrays = []
             for mySample in listOfSamples:
                 inputFile = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs"+suffix,"r")
-                myPtArrays.append(np.array(inputFile["BES_vars"][...,35]))
+                myPtArrays.append(np.array(inputFile["BES_vars"][...,28]))
             # --- Create histogram, legend and title ---
             plt.figure()
             H = plt.hist(myPtArrays, label=listOfSamples, normed=True)
