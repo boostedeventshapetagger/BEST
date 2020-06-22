@@ -180,7 +180,7 @@ arbitrary_length = 10 #Hopefully this number doesn't matter
 nx = 31
 ny = 31
 ImageShapeHolder = numpy.zeros((arbitrary_length, nx, ny, 1))
-BestShapeHolder = 106
+BestShapeHolder = 94
 
 HiggsImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
 
@@ -335,7 +335,7 @@ print("Trained the neural network!")
 # performance plots
 loss = [history.history['loss'], history.history['val_loss'] ]
 acc = [history.history['acc'], history.history['val_acc'] ]
-tools.plotPerformance(loss, acc, "imageOnly")
+tools.plotPerformance(loss, acc, "newAxes")
 print("plotted BEST training Performance")
 
 print("Program was a great success!!!")
