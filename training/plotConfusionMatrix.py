@@ -24,6 +24,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.externals import joblib
 
 # set up keras
+import os
 from os import environ
 environ["KERAS_BACKEND"] = "tensorflow" #must set backend before importing keras
 from keras.models import Sequential, Model
@@ -151,7 +152,8 @@ numpy.random.set_state(rng_state)
 numpy.random.shuffle(jetBESvarsTest)
 
 print("Load model")
-model_BEST = load_model("/uscms/home/bonillaj/johan_BEST/training/BEST_model.h5")
+model_BEST = load_model("/uscms/home/bonillaj/workDir6/CMSSW_10_2_18/src/BEST/training/BEST_model.h5")
+
 print("Make confusion matrix")
 cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:], jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
 print("Plot confusion matrix")
@@ -160,6 +162,8 @@ plt.figure(
 targetNames = ['W', 'Z', 'Higgs', 'Top', 'b', 'QCD']
 functs.plot_confusion_matrix(cm.T, targetNames, normalize=True)
 if savePDF == True:
+   if not os.path.isdir("plots"):
+      os.mkdir("plots")
    plt.savefig('plots/ConfusionFlatPtFourFrames_NewData.pdf')
 plt.close()
 

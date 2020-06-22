@@ -14,6 +14,7 @@ import random
 import itertools
 import types
 import tempfile
+import os
 #import keras.models
 
 # grab some keras stuff
@@ -206,6 +207,8 @@ def plotPerformance(loss, acc, adToTitle): #, train_test, target_test, target_pr
    plt.legend(loc="upper right")
    plt.xlabel('epoch')
    plt.ylabel('loss')
+   if not os.path.isdir("plots"):
+      os.mkdir("plots")
    plt.savefig("plots/"+adToTitle+"_loss.pdf")
    plt.savefig("plots/"+adToTitle+"_loss.png")
    plt.close()
