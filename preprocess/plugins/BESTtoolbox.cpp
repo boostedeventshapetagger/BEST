@@ -92,7 +92,6 @@ int FWMoments(std::vector<TLorentzVector> particles, double (&outputs)[5] ){
 // This gets all the jet constituents (daughters) and stores them as a standard ----------
 // vector --------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------
-
 void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vector<pat::Jet>::const_iterator jet){
     // First get all daughters for the first Soft Drop Subjet
     for (unsigned int i = 0; i < jet->daughter(0)->numberOfDaughters(); i++){
@@ -109,7 +108,6 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
         if (jet->daughter(i)->pt() < 0.5) continue;
         daughtersOfJet.push_back( (reco::Candidate *) jet->daughter(i) );
     }
-
 }
 
 //========================================================================================
@@ -118,10 +116,9 @@ void getJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vecto
 // This takes various jet quantaties and stores them on the map used to fill -------------
 // the jet tree --------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------
-
 void storeJetVariables(std::map<std::string, float> &besVars, std::vector<pat::Jet>::const_iterator jet,
                        int jetColl){
-                // pasing a variable with & is pass-by-reference which keeps changes in this func
+    // pasing a variable with & is pass-by-reference which keeps changes in this func
 
     // Jet four vector and Soft Drop info
     besVars["jetAK8_phi"] = jet->phi();
@@ -163,7 +160,6 @@ void storeJetVariables(std::map<std::string, float> &besVars, std::vector<pat::J
 	}
 	besVars["bDisc1"] = subjets[0]->bDiscriminator("pfDeepCSVJetTags:probb") + subjets[0]->bDiscriminator("pfDeepCSVJetTags:probbb");
         besVars["bDisc2"] = subjets[1]->bDiscriminator("pfDeepCSVJetTags:probb") + subjets[1]->bDiscriminator("pfDeepCSVJetTags:probbb");
-
     }
 }
 
@@ -173,29 +169,28 @@ void storeJetVariables(std::map<std::string, float> &besVars, std::vector<pat::J
 // This takes various secondary vertex quantities and stores them on the map -------------
 // used to fill the tree -----------------------------------------------------------------
 //----------------------------------------------------------------------------------------
-
 void storeSecVertexVariables(std::map<std::string, float> &besVars,
                              std::map<std::string, std::vector<float> > &jetVecVars, TLorentzVector jet,
                              std::vector<reco::VertexCompositePtrCandidate> secVertices){
-
-   int numMatched = 0; // counts number of secondary vertices
-   for(std::vector<reco::VertexCompositePtrCandidate>::const_iterator vertBegin = secVertices.begin(),
-              vertEnd = secVertices.end(), ivert = vertBegin; ivert != vertEnd; ivert++){
-      TLorentzVector vert(ivert->px(), ivert->py(), ivert->pz(), ivert->energy() );
-      // match vertices to jet
-      if(jet.DeltaR(vert) < 0.8 ){
-         numMatched++;
-         // save secondary vertex info for the first three sec vertices
-         jetVecVars["SV_pt"].push_back(ivert->pt() );
-         jetVecVars["SV_eta"].push_back(ivert->eta() );
-         jetVecVars["SV_phi"].push_back(ivert->phi() );
-         jetVecVars["SV_mass"].push_back(ivert->mass() );
-         jetVecVars["SV_nTracks"].push_back(ivert->numberOfDaughters() );
-         jetVecVars["SV_chi2"].push_back(ivert->vertexChi2() );
-         jetVecVars["SV_Ndof"].push_back(ivert->vertexNdof() );
-      }
-   }
-   besVars["nSecondaryVertices"] = numMatched;
+    int numMatched = 0; // counts number of secondary vertices
+    for(std::vector<reco::VertexCompositePtrCandidate>::const_iterator vertBegin = secVertices.begin(),
+	  vertEnd = secVertices.end(), ivert = vertBegin; ivert != vertEnd; ivert++){
+        TLorentzVector vert(ivert->px(), ivert->py(), ivert->pz(), ivert->energy() );
+	// match vertices to jet
+	if(jet.DeltaR(vert) < 0.8 ){
+	    numMatched++;
+	    // save secondary vertex info for the first three sec vertices
+	    jetVecVars["SV_pt"].push_back(ivert->pt() );
+	    jetVecVars["SV_eta"].push_back(ivert->eta() );
+	    jetVecVars["SV_phi"].push_back(ivert->phi() );
+	    jetVecVars["SV_mass"].push_back(ivert->mass() );
+	    jetVecVars["SV_nTracks"].push_back(ivert->numberOfDaughters() );
+	    jetVecVars["SV_chi2"].push_back(ivert->vertexChi2() );
+	    jetVecVars["SV_Ndof"].push_back(ivert->vertexNdof() );
+	}
+    }
+    
+    besVars["nSecondaryVertices"] = numMatched;
 }
 
 //========================================================================================
@@ -204,9 +199,10 @@ void storeSecVertexVariables(std::map<std::string, float> &besVars,
 // This boosts an ak8 jet (and all of its constituents) into heavy object rest frame -----
 // and then uses it to calculate FoxWolfram moments, Event Shape Variables, --------------
 // and assymmetry variables --------------------------------------------------------------
+// If requirements not satisfied to proceed return false. Else finish by returning true --
 //----------------------------------------------------------------------------------------
 
-void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> &daughtersOfJet,
+bool calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> &daughtersOfJet,
                       std::map<std::string, std::vector<TLorentzVector> > &boostedDaughters,
                       std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<fastjet::PseudoJet> > &restJets,
                       std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
@@ -331,6 +327,8 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
             break;
         }
     }
+
+    if (rotationJets.size()<2) return false;
     
     // make the rest frame jet images
     boostedDaughters[frame+"Frame"] = boostedCands;
@@ -346,6 +344,8 @@ void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     besVars["jet23_CosTheta_"+frame]   = jet23LV.CosTheta();
     besVars["jet1234_CosTheta_"+frame] = jet1234LV.CosTheta();
     besVars["nJets_"+frame] = jetsFJ.size();
+    
+    return true;
 }
 
 //========================================================================================
@@ -359,7 +359,6 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
                        std::map<std::string, std::vector<TLorentzVector> > &boostedDaughters,
                        std::map<std::string, std::vector<fastjet::PseudoJet> > &restJets, std::vector<std::string> frames,
                        std::map<std::string, std::vector<float> > &jetVecVars, int jetColl ){
-
     // loop over lab frame candidates
     for(unsigned int i = 0; i < daughtersOfJet.size(); i++){
 
@@ -410,9 +409,7 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
             jetVecVars[frame+"Frame_jet_pz"].push_back(ijet->pz());
             jetVecVars[frame+"Frame_jet_energy"].push_back(ijet->e());
         }
-
     }
-
 }
 
 //========================================================================================
@@ -422,9 +419,7 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
 // boostedCands = the lorentz vectores of the the jet PF candidates in the rest frame-
 // Image = the container for the jet image -----------------------------------------------
 //----------------------------------------------------------------------------------------
-
 std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands, std::vector<TLorentzVector> &reclusteredJets){
-
     // create a place to store the image
     std::array<std::array<std::array<float, 1>, 31>, 31> Image;
 
@@ -500,7 +495,6 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
         jetNum++;
     }
 
-    
     //Reflect if necessary
     float rightSum = 0;
     float leftSum = 0;

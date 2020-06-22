@@ -46,7 +46,7 @@ void storeSecVertexVariables(std::map<std::string, float> &besVars, std::map< st
                              TLorentzVector jet, std::vector<reco::VertexCompositePtrCandidate> secVertices);
 
 // calculate the rest frame variables
-void calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> &daughtersOfJet,
+bool calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::Candidate *> &daughtersOfJet,
                       std::map<std::string, std::vector<TLorentzVector> > &boostedDaughters,
                       std::vector<pat::Jet>::const_iterator jet, std::map<std::string, std::vector<fastjet::PseudoJet> > &restJets,
                       std::map<std::string, std::array<std::array<std::array<float, 1>, 31>, 31> > &imgVars,
