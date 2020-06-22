@@ -6,9 +6,9 @@
 #-----------------------------------------------------------------------------------------
 
 # List files from eos with BEST in name (typically /eos/path/BESTInputs_*.root)
-eosDirPath="/store/user/jbonilla/QCD_Pt-15to7000_TuneCP5_Flat2017_13TeV_pythia8/crab_QCD_Flat_Pt_trees/200430_095235/0000"
+eosDirPath="/store/user/jbonilla/"
 echo "Listing files in $eosDirPath"
-eosBESTFiles=`xrdfsls -R $eosDirPath | grep 'BEST'`
+eosBESTFiles=`xrdfsls -R $eosDirPath | grep '.*QCD.*BEST'`
 
 # Check if file exists, if so delete
 fileToWrite="./listOfQCDfilePaths.txt"
