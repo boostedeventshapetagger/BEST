@@ -53,7 +53,7 @@ def standardizeBESTVars(fileDir = "../formatConverter/h5samples/", sampleTypes =
       print("JetBESDF", jetBESDF.keys())
       for mySample in sampleTypes:
          jetBESDF[mySample] = scaler.transform(jetBESDF[mySample])
-         print "Transformed", mySample
+         print("Transformed", mySample)
          #if infParticle == 'H' : infParticle = 'Higgs'
          #if infParticle == 'T' : infParticle = 'Top'
          #if infParticle == 'B' : infParticle = 'b'
@@ -64,7 +64,7 @@ def standardizeBESTVars(fileDir = "../formatConverter/h5samples/", sampleTypes =
             outFilePath = outFilePath + "_" + suffix
          outFilePath = outFilePath + "_standardized.h5"
          outF = h5py.File(outFilePath, "w")
-         print "Creating Standarized Dataset for ", mySample, len(jetBESDF[mySample])
+         print("Creating Standarized Dataset for ", mySample, len(jetBESDF[mySample]))
          outF.create_dataset('BES_vars', data=jetBESDF[mySample], compression='lzf')
 
          inFilePath = fileDir+mySample+"Sample_BESTinputs"
