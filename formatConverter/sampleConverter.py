@@ -120,7 +120,8 @@ def storeBESTinputs(h5f, sampleType, numIter, arrays, besKeys, imgFrames, besDS,
         besDS.resize(besDS.shape[0] + len(jetDF['BES_vars']), axis=0)
         besDS[-len(jetDF['BES_vars']) :] = jetDF['BES_vars'] 
 
-   if debug:  print("Converted jets: ", besDS.shape[0] - len(jetDF['BES_vars']), " to ", besDS.shape[0])
+    if debug:  
+        print("Converted jets: ", besDS.shape[0] - len(jetDF['BES_vars']), " to ", besDS.shape[0])
 
     #==================================================================================
     # Plot Jet Images /////////////////////////////////////////////////////////////////
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     # Loop over samples and convert each separately
     for sampleType in listOfSamples:
         print("Processing", sampleType)
-        convert(args.eosDir, args.outDir, sampleType)
+        convert(args.eosDir, args.outDir, sampleType, args.debug)
         
     ## Plot total pT distributions
     #if args.plots:
