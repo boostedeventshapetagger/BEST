@@ -50,9 +50,9 @@ sess = tf.Session(config=config)
 h = tf.constant('hello world')
 print(sess.run(h))
 
-# set options 
-savePDF = False
-savePNG = True
+# Do BES and/or images
+doBES = False
+doImages = True
 
 setTypes = ["Train","Validation"]
 sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
@@ -65,9 +65,11 @@ BatchSize = 1200
 #==================================================================================
 # This will create a series of global variables like jetTopFrameTrain and jetHiggsFrameValidation and jetBESvarsTrain, (4frames+1BesVars)*2sets=10globVars
 for mySet in setTypes:
-   for myFrame in frameTypes:
-      globals()["jet"+myFrame+"Frame"+mySet] = []
-   globals()["jetBESvars"+mySet] = []
+   if doImages:
+      for myFrame in frameTypes:
+         globals()["jet"+myFrame+"Frame"+mySet] = []
+   if doBES:
+      globals()["jetBESvars"+mySet] = []
       
 #jetImagesTrain = [] #Should be a concatenation of XFrameImageTrain (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
 #jetImagesValidation = [] #Should be a concatenation of XFrameImageValidation (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
@@ -85,24 +87,30 @@ print(globals())
 #==================================================================================
 
 # Loop over 2sets*6samples=12 files
+makeTruthLabelsOnce = True
 for mySet in setTypes:
    for index, mySample in enumerate(sampleTypes):
       print("Opening "+mySample+mySet+" file")
       myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
+
+      ## Make TruthLabels, only once (i.e. for key=BESvars)
+      if globals()["truthLabels"+mySet] == []:
+         print("Making new", "truthLabels"+mySet)
+         globals()["truthLabels"+mySet] = numpy.full(len(myF['BES_vars'][()]), index)
+      else:
+         print("Concatenate", "truthLabels"+mySet)
+         globals()["truthLabels"+mySet] = numpy.concatenate((globals()["truthLabels"+mySet], numpy.full(len(myF['BES_vars'][()]), index)))
+      
       for myKey in myF.keys():
          varKey = "jet"
          if "image" in myKey.lower():
+            if not doImages:
+               continue
             varKey = varKey+myKey.split("_")[0] # so HiggsFrame, TopFrame, etc
          else:
+            if not doBES:
+               continue
             varKey = varKey+"BESvars"
-         
-            ## Make TruthLabels, only once (i.e. for key=BESvars)
-            if globals()["truthLabels"+mySet] == []:
-               print("Making new", "truthLabels"+mySet)
-               globals()["truthLabels"+mySet] = numpy.full(len(myF[myKey][()]), index)
-            else:
-               print("Concatenate", "truthLabels"+mySet)
-               globals()["truthLabels"+mySet] = numpy.concatenate((globals()["truthLabels"+mySet], numpy.full(len(myF[myKey][()]), index)))
                
          varKey = varKey+mySet
          
@@ -132,9 +140,12 @@ print("Made Truth Labels Validation", truthLabelsValidation.shape)
 #jetImagesValidation = numpy.concatenate([globals()["jet"+myFrame+"FrameValidation"] for myFrame in frameTypes])
 #print("Concatenated validation images", jetImagesValidation.shape)
 #print("Finished Image Concatenation")
-print("BESvars Train Shape", jetBESvarsTrain.shape)
-print("BESvars Validation Shape", jetBESvarsValidation.shape)
+if doBES:
+   print("BESvars Train Shape", jetBESvarsTrain.shape)
+   print("BESvars Validation Shape", jetBESvarsValidation.shape)
 for myFrame in frameTypes:
+   if not doImages:
+      continue
    print(myFrame+" Images Train Shape", globals()["jet"+myFrame+"FrameTrain"].shape)
    print(myFrame+" Images Validation Shape", globals()["jet"+myFrame+"FrameValidation"].shape)
 
@@ -142,32 +153,36 @@ print("Shuffle Train")
 rng_state = numpy.random.get_state()
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(truthLabelsTrain)
-numpy.random.set_state(rng_state)
-#numpy.random.shuffle(jetImagesTrain)
-numpy.random.shuffle(jetWFrameTrain)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetZFrameTrain)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetHiggsFrameTrain)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetTopFrameTrain)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetBESvarsTrain)
+if doBES:
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetBESvarsTrain)
+if doImages:
+   numpy.random.set_state(rng_state)
+   #numpy.random.shuffle(jetImagesTrain)
+   numpy.random.shuffle(jetWFrameTrain)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetZFrameTrain)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetHiggsFrameTrain)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetTopFrameTrain)
 
 print("Shuffle Validation")
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(truthLabelsValidation)
-numpy.random.set_state(rng_state)
-#numpy.random.shuffle(jetImagesValidation)
-numpy.random.shuffle(jetWFrameValidation)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetZFrameValidation)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetHiggsFrameValidation)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetTopFrameValidation)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetBESvarsValidation)
+if doBES:
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetBESvarsValidation)
+if doImages:
+   numpy.random.set_state(rng_state)
+   #numpy.random.shuffle(jetImagesValidation)
+   numpy.random.shuffle(jetWFrameValidation)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetZFrameValidation)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetHiggsFrameValidation)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetTopFrameValidation)
 
 
 print("Stored data and truth information")
@@ -176,133 +191,143 @@ print("Stored data and truth information")
 # Train the Neural Network ////////////////////////////////////////////////////////
 #==================================================================================
 # Shape parameters
-arbitrary_length = 10 #Hopefully this number doesn't matter
-nx = 31
-ny = 31
-ImageShapeHolder = numpy.zeros((arbitrary_length, nx, ny, 1))
-BestShapeHolder = 94
+if doImages:
+   arbitrary_length = 10 #Hopefully this number doesn't matter
+   nx = 31
+   ny = 31
+   ImageShapeHolder = numpy.zeros((arbitrary_length, nx, ny, 1))
 
-HiggsImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
+   HiggsImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
+   
+   HiggsImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageInputs)
+   HiggsImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
+   HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer)
+   HiggsImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
+   HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer)
+   HiggsImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
+   HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
+   HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer) 
+   HiggsImageLayer = Flatten()(HiggsImageLayer)
+   HiggsImageLayer = Dropout(0.20)(HiggsImageLayer)
+   #HiggsImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+   #HiggsImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+   #HiggsImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
+   #HiggsImageLayer = Dropout(0.10)(HiggsImageLayer)
+   
+   HiggsImageModel = Model(inputs = HiggsImageInputs, outputs = HiggsImageLayer)
+   
+   #Top image
+   TopImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
+   
+   TopImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageInputs)
+   TopImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
+   TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
+   TopImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
+   TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
+   TopImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
+   TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
+   TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
+   TopImageLayer = Flatten()(TopImageLayer)
+   TopImageLayer = Dropout(0.20)(TopImageLayer)
+   #TopImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+   #TopImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+   #TopImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
+   #TopImageLayer = Dropout(0.10)(TopImageLayer)
+   
+   TopImageModel = Model(inputs = TopImageInputs, outputs = TopImageLayer)
+   
+   #W Model
+   WImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
+   
+   WImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageInputs)
+   WImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
+   WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
+   WImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
+   WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
+   WImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
+   WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
+   WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
+   WImageLayer = Flatten()(WImageLayer)
+   WImageLayer = Dropout(0.20)(WImageLayer)
+   #WImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+   #WImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+   #WImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
+   #WImageLayer = Dropout(0.10)(WImageLayer)
 
-HiggsImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageInputs)
-HiggsImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
-HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer)
-HiggsImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
-HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer)
-HiggsImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(HiggsImageLayer)
-HiggsImageLayer = BatchNormalization(momentum = 0.6)(HiggsImageLayer)
-HiggsImageLayer = MaxPool2D(pool_size=(2,2) )(HiggsImageLayer) 
-HiggsImageLayer = Flatten()(HiggsImageLayer)
-HiggsImageLayer = Dropout(0.20)(HiggsImageLayer)
-#HiggsImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-#HiggsImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-#HiggsImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(HiggsImageLayer)
-#HiggsImageLayer = Dropout(0.10)(HiggsImageLayer)
+   WImageModel = Model(inputs = WImageInputs, outputs = WImageLayer)
 
-HiggsImageModel = Model(inputs = HiggsImageInputs, outputs = HiggsImageLayer)
+   
+   #Z Model
+   ZImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
+   
+   ZImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageInputs)
+   ZImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
+   ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
+   ZImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
+   ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
+   ZImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
+   ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
+   ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
+   ZImageLayer = Flatten()(ZImageLayer)
+   ZImageLayer = Dropout(0.20)(ZImageLayer)#try 0.35 dropout here and in other images networks
+   #ZImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+   #ZImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+   #ZImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
+   #ZImageLayer = Dropout(0.10)(ZImageLayer)
 
-#Top image
-TopImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
-
-TopImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageInputs)
-TopImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
-TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
-TopImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
-TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
-TopImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(TopImageLayer)
-TopImageLayer = BatchNormalization(momentum = 0.6)(TopImageLayer)
-TopImageLayer = MaxPool2D(pool_size=(2,2) )(TopImageLayer)
-TopImageLayer = Flatten()(TopImageLayer)
-TopImageLayer = Dropout(0.20)(TopImageLayer)
-#TopImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-#TopImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-#TopImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(TopImageLayer)
-#TopImageLayer = Dropout(0.10)(TopImageLayer)
-
-TopImageModel = Model(inputs = TopImageInputs, outputs = TopImageLayer)
-
-#W Model
-WImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
-
-WImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageInputs)
-WImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
-WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
-WImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
-WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
-WImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(WImageLayer)
-WImageLayer = BatchNormalization(momentum = 0.6)(WImageLayer)
-WImageLayer = MaxPool2D(pool_size=(2,2) )(WImageLayer)
-WImageLayer = Flatten()(WImageLayer)
-WImageLayer = Dropout(0.20)(WImageLayer)
-#WImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-#WImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-#WImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(WImageLayer)
-#WImageLayer = Dropout(0.10)(WImageLayer)
-
-WImageModel = Model(inputs = WImageInputs, outputs = WImageLayer)
-
-
-#Z Model
-ZImageInputs = Input( shape=(ImageShapeHolder.shape[1], ImageShapeHolder.shape[2], ImageShapeHolder.shape[3]) )
-
-ZImageLayer = SeparableConv2D(32, (11,11), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageInputs)
-ZImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
-ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
-ZImageLayer = SeparableConv2D(32, (7,7), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
-ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
-ZImageLayer = SeparableConv2D(32, (5,5), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = SeparableConv2D(32, (2,2), strides=(1,1), padding="same", activation="relu", kernel_regularizer=l2(0.01) )(ZImageLayer)
-ZImageLayer = BatchNormalization(momentum = 0.6)(ZImageLayer)
-ZImageLayer = MaxPool2D(pool_size=(2,2) )(ZImageLayer)
-ZImageLayer = Flatten()(ZImageLayer)
-ZImageLayer = Dropout(0.20)(ZImageLayer)
-#ZImageLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-#ZImageLayer = Dense(72, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-#ZImageLayer = Dense(24, kernel_initializer="glorot_normal", activation="relu" )(ZImageLayer)
-#ZImageLayer = Dropout(0.10)(ZImageLayer)
-
-ZImageModel = Model(inputs = ZImageInputs, outputs = ZImageLayer)
+   ZImageModel = Model(inputs = ZImageInputs, outputs = ZImageLayer)
 
 # Create the BES variable version
-besInputs = Input( shape=(BestShapeHolder, ) )
-#besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besInputs)
-#besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besLayer)
+if doBES:
+   BestShapeHolder = 94
+   besInputs = Input( shape=(BestShapeHolder, ) )
+   #besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besInputs)
+   #besLayer = Dense(40, kernel_initializer="glorot_normal", activation="relu" )(besLayer)
 
-besModel = Model(inputs = besInputs, outputs = besInputs)
-print (besModel.output)
+   besModel = Model(inputs = besInputs, outputs = besInputs)
+   print (besModel.output)
+
 # Add BES variables to the network
-combined = concatenate([WImageModel.output, ZImageModel.output, HiggsImageModel.output, TopImageModel.output, besModel.output])
+if doBES and not doImages:
+   combined = besModel.output
+elif doBES and doImages:
+   combined = concatenate([WImageModel.output, ZImageModel.output, HiggsImageModel.output, TopImageModel.output, besModel.output])
+elif not doBES and doImages:
+   combined = concatenate([WImageModel.output, ZImageModel.output, HiggsImageModel.output, TopImageModel.output])
+   
 #Testing with just Higgs layer
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besModel.output])
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besInputs])
 
 #combined = besModel.output
 combLayer = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(combined)
-combLayer = Dropout(0.20)(combLayer)
+combLayer = Dropout(0.20)(combLayer)# try 0.35
 combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
+#Another dropout of 0.35
 combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
 combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
 combLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
@@ -310,7 +335,12 @@ combLayer = Dropout(0.10)(combLayer)
 outputBEST = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(combLayer)
 
 # compile the model
-model_BEST = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input, besModel.input], outputs = outputBEST)
+if doBES and not doImages:
+   model_BEST = Model(inputs = [besModel.input], outputs = outputBEST)
+elif doBES and doImages:
+   model_BEST = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input, besModel.input], outputs = outputBEST)
+elif not doBES and doImages:
+   model_BEST = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input], outputs = outputBEST)
 
 model_BEST.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -322,20 +352,25 @@ early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, 
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
-model_checkpoint = ModelCheckpoint('BEST_model.h5', monitor='val_loss', 
+model_checkpoint = ModelCheckpoint('BEST_model_onlyImages.h5', monitor='val_loss', 
                                    verbose=0, save_best_only=True, 
                                    save_weights_only=False, mode='auto', 
                                    period=1)
 
 # train the neural network
-history = model_BEST.fit([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
+if doBES and not doImages:
+   history = model_BEST.fit([jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetBESvarsValidation[:]], truthLabelsValidation[:]])
+elif doBES and doImages:
+   history = model_BEST.fit([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
+elif not doBES and doImages:
+   history = model_BEST.fit([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:]], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:]], truthLabelsValidation[:]])
 
 print("Trained the neural network!")
 
 # performance plots
 loss = [history.history['loss'], history.history['val_loss'] ]
 acc = [history.history['acc'], history.history['val_acc'] ]
-tools.plotPerformance(loss, acc, "newAxes")
+tools.plotPerformance(loss, acc, "onlyImages")
 print("plotted BEST training Performance")
 
 print("Program was a great success!!!")
