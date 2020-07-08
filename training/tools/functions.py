@@ -198,7 +198,7 @@ def randomizeData(array):
 # target_predict is the models prediction of data that has not been trained on ////
 #----------------------------------------------------------------------------------
 
-def plotPerformance(loss, acc, adToTitle): #, train_test, target_test, target_predict):
+def plotPerformance(loss, acc, suffix): #, train_test, target_test, target_predict):
    
    # plot loss vs epoch
    plt.figure()
@@ -207,10 +207,10 @@ def plotPerformance(loss, acc, adToTitle): #, train_test, target_test, target_pr
    plt.legend(loc="upper right")
    plt.xlabel('epoch')
    plt.ylabel('loss')
-   if not os.path.isdir("plots"):
-      os.mkdir("plots")
-   plt.savefig("plots/"+adToTitle+"_loss.pdf")
-   plt.savefig("plots/"+adToTitle+"_loss.png")
+   if not os.path.isdir("plots"+suffix):
+      os.mkdir("plots"+suffix)
+   plt.savefig("plots"+suffix+"/"+suffix+"_loss.pdf")
+   plt.savefig("plots"+suffix+"/"+suffix+"_loss.png")
    plt.close()
 
    # plot accuracy vs epoch
@@ -220,8 +220,8 @@ def plotPerformance(loss, acc, adToTitle): #, train_test, target_test, target_pr
    plt.legend(loc="upper left")
    plt.xlabel('epoch')
    plt.ylabel('acc')
-   plt.savefig("plots/"+adToTitle+"_acc.pdf")
-   plt.savefig("plots/"+adToTitle+"_acc.png")
+   plt.savefig("plots"+suffix+"/"+suffix+"_acc.pdf")
+   plt.savefig("plots"+suffix+"/"+suffix+"_acc.png")
    plt.close()
 
    # Plot ROC

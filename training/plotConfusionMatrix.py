@@ -55,6 +55,8 @@ print(sess.run(h))
 # set options 
 savePDF = True
 savePNG = True
+doBES = False
+doImages = True
 
 setTypes = ["Test"]
 sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
@@ -67,9 +69,11 @@ BatchSize = 1200
 #==================================================================================
 # This will create a series of global variables like jetTopFrameTrain and jetHiggsFrameValidation and jetBESvarsTrain, (4frames+1BesVars)*2sets=10globVars
 for mySet in setTypes:
-   for myFrame in frameTypes:
-      globals()["jet"+myFrame+"Frame"+mySet] = []
-   globals()["jetBESvars"+mySet] = []
+   if doImages:
+      for myFrame in frameTypes:
+         globals()["jet"+myFrame+"Frame"+mySet] = []
+   if doBES:
+      globals()["jetBESvars"+mySet] = []
       
 #jetImagesTrain = [] #Should be a concatenation of XFrameImageTrain (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
 #jetImagesValidation = [] #Should be a concatenation of XFrameImageValidation (ensure above sampleType order), each which appends {W,Z,H,Top,b,QCD}_XFrame_images_train
@@ -90,20 +94,25 @@ for mySet in setTypes:
    for index, mySample in enumerate(sampleTypes):
       print("Opening "+mySample+mySet+" file")
       myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
+
+      ## Make TruthLabels, only once (i.e. for key=BESvars)
+      if globals()["truthLabels"+mySet] == []:
+         print("Making new", "truthLabels"+mySet)
+         globals()["truthLabels"+mySet] = numpy.full(len(myF["BES_vars"][()]), index)
+      else:
+         print("Concatenate", "truthLabels"+mySet)
+         globals()["truthLabels"+mySet] = numpy.concatenate((globals()["truthLabels"+mySet], numpy.full(len(myF["BES_vars"][()]), index)))
+      
       for myKey in myF.keys():
          varKey = "jet"
          if "image" in myKey.lower():
+            if not doImages:
+               continue
             varKey = varKey+myKey.split("_")[0] # so HiggsFrame, TopFrame, etc
          else:
+            if not doBES:
+               continue
             varKey = varKey+"BESvars"
-         
-            ## Make TruthLabels, only once (i.e. for key=BESvars)
-            if globals()["truthLabels"+mySet] == []:
-               print("Making new", "truthLabels"+mySet)
-               globals()["truthLabels"+mySet] = numpy.full(len(myF[myKey][()]), index)
-            else:
-               print("Concatenate", "truthLabels"+mySet)
-               globals()["truthLabels"+mySet] = numpy.concatenate((globals()["truthLabels"+mySet], numpy.full(len(myF[myKey][()]), index)))
                
          varKey = varKey+mySet
          
@@ -131,40 +140,50 @@ print("Made Truth Labels Test", truthLabelsTest.shape)
 #jetImagesValidation = numpy.concatenate([globals()["jet"+myFrame+"FrameValidation"] for myFrame in frameTypes])
 #print("Concatenated validation images", jetImagesValidation.shape)
 #print("Finished Image Concatenation")
-print("BESvars Test Shape", jetBESvarsTest.shape)
+if doBES:
+   print("BESvars Test Shape", jetBESvarsTest.shape)
 for myFrame in frameTypes:
+   if not doImages:
+      continue
    print(myFrame+" Images Train Shape", globals()["jet"+myFrame+"FrameTest"].shape)
 
 print("Shuffle Test")
 rng_state = numpy.random.get_state()
 numpy.random.set_state(rng_state)
 numpy.random.shuffle(truthLabelsTest)
-numpy.random.set_state(rng_state)
-#numpy.random.shuffle(jetImagesTrain)
-numpy.random.shuffle(jetWFrameTest)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetZFrameTest)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetHiggsFrameTest)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetTopFrameTest)
-numpy.random.set_state(rng_state)
-numpy.random.shuffle(jetBESvarsTest)
+if doBES:
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetBESvarsTest)
+if doImages:
+   numpy.random.set_state(rng_state)
+   #numpy.random.shuffle(jetImagesTrain)
+   numpy.random.shuffle(jetWFrameTest)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetZFrameTest)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetHiggsFrameTest)
+   numpy.random.set_state(rng_state)
+   numpy.random.shuffle(jetTopFrameTest)
 
 print("Load model")
-model_BEST = load_model("/uscms/home/bonillaj/workDir6/CMSSW_10_2_18/src/BEST/training/BEST_model.h5")
+model_BEST = load_model("/uscms/home/bonillaj/johan_BEST/training/BEST_model_onlyImages.h5")
 
 print("Make confusion matrix")
-cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:], jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+if doBES and not doImages:
+   cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+elif doBES and doImages:
+   cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:], jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+elif not doBES and doImages:
+   cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:]]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
 print("Plot confusion matrix")
 plt.figure(
 )
 targetNames = ['W', 'Z', 'Higgs', 'Top', 'b', 'QCD']
 functs.plot_confusion_matrix(cm.T, targetNames, normalize=True)
 if savePDF == True:
-   if not os.path.isdir("plots"):
-      os.mkdir("plots")
-   plt.savefig('plots/ConfusionFlatPtFourFrames_NewData.pdf')
+   if not os.path.isdir("plots_onlyImages"):
+      os.mkdir("plots_onlyImages")
+   plt.savefig('plots_onlyImages/ConfusionMatrix_onlyImages.pdf')
 plt.close()
 
 
