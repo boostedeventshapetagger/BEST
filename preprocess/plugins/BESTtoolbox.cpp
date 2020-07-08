@@ -331,8 +331,8 @@ bool calcBESvariables(std::map<std::string, float> &besVars, std::vector<reco::C
     if (rotationJets.size()<2) return false;
     
     // make the rest frame jet images
-    boostedDaughters[frame+"Frame"] = boostedCands;
-    imgVars[frame+"Frame_image"] = boostedJetCamera(boostedCands, rotationJets);
+    boostedDaughters[frame+"Frame"] = particles;
+    imgVars[frame+"Frame_image"] = boostedJetCamera(particles, rotationJets);
 
     // Store reclustered jet mass combinations
     besVars["jet12_mass_"+frame]   = jet12LV.M();
@@ -419,13 +419,13 @@ void storeJetDaughters(std::vector<reco::Candidate * > &daughtersOfJet, std::vec
 // boostedCands = the lorentz vectores of the the jet PF candidates in the rest frame-
 // Image = the container for the jet image -----------------------------------------------
 //----------------------------------------------------------------------------------------
-std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &boostedCands, std::vector<TLorentzVector> &reclusteredJets){
+std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vector<TLorentzVector> &pfCands, std::vector<TLorentzVector> &reclusteredJets){
     // create a place to store the image
     std::array<std::array<std::array<float, 1>, 31>, 31> Image;
 
     //Sort the new list of particle flow candidates and reclustered jets in the rest rame by energy
     auto sortLambda = [] (const TLorentzVector& lv1, const TLorentzVector& lv2) {return lv1.E() > lv2.E(); };
-    std::sort(boostedCands.begin(), boostedCands.end(), sortLambda);
+    std::sort(pfCands.begin(), pfCands.end(), sortLambda);
     std::sort(reclusteredJets.begin(), reclusteredJets.end(), sortLambda);
 
     //------------------------------------------------------------------------------------
@@ -438,7 +438,7 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
 
     // perform the first two rotations and sum energy
     float candNum = 0;
-    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
+    for(auto icand = pfCands.begin(); icand != pfCands.end(); icand++){
 
         // rotate all candidates so that the leading candidate is in the x y plane
         icand->RotateZ(-rotPhi);
@@ -474,7 +474,7 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
 
     // Rotate PF cands
     candNum = 0;
-    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
+    for(auto icand = pfCands.begin(); icand != pfCands.end(); icand++){
 
         // rotate all candidates about the x axis so that the subleading candidate is in the xy plane
         icand->RotateX(subPsi - TMath::Pi()/2.0);
@@ -500,7 +500,7 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
     float leftSum = 0;
     float topSum = 0;
     float botSum = 0;
-    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
+    for(auto icand = pfCands.begin(); icand != pfCands.end(); icand++){
         if (icand->CosTheta() > 0){
             topSum+=icand->E();
         }
@@ -524,7 +524,7 @@ std::array<std::array<std::array<float, 1>, 31>, 31> boostedJetCamera(std::vecto
     //find the x and y coordinates in phi, theta binned space
     //Then fill Image with normalized energy
 
-    for(auto icand = boostedCands.begin(); icand != boostedCands.end(); icand++){
+    for(auto icand = pfCands.begin(); icand != pfCands.end(); icand++){
         int x_bin = -1;
         int y_bin = -1;
         if (topSum >= botSum){
