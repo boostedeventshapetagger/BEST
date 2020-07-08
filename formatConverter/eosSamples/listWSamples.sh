@@ -8,7 +8,7 @@
 # List files from eos with BEST in name (typically /eos/path/BESTInputs_*.root)
 eosDirPath="/store/user/jbonilla/"
 echo "Listing files in $eosDirPath"
-eosBESTFiles=`xrdfsls -R $eosDirPath | grep '.*WW.*BEST'`
+eosBESTFiles=`xrdfsls -R $eosDirPath | grep '.*WW.*200624.*BEST'`
 
 # Check if file exists, if so delete
 fileToWrite="./listOfWfilePaths.txt"
