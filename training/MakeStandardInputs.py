@@ -46,7 +46,7 @@ def standardizeBESTVars(fileDir = "../formatConverter/h5samples/", sampleTypes =
       print("Shape allBESinputs", allBESinputs.shape)
       scaler = preprocessing.StandardScaler().fit(allBESinputs)
 
-      with open('ScalerParameters.txt', 'w') as outputFile:
+      with open('ScalerParameters_'+mySet+'.txt', 'w') as outputFile:
          for mean,var in zip(scaler.mean_, scaler.var_):
             outputFile.write('{},{}\n'.format(mean, var))
 
