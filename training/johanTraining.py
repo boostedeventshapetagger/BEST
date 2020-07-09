@@ -51,7 +51,7 @@ h = tf.constant('hello world')
 print(sess.run(h))
 
 # Do BES and/or images
-doBES = False
+doBES = True
 doImages = True
 
 setTypes = ["Train","Validation"]
@@ -91,7 +91,7 @@ makeTruthLabelsOnce = True
 for mySet in setTypes:
    for index, mySample in enumerate(sampleTypes):
       print("Opening "+mySample+mySet+" file")
-      myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
+      myF = h5py.File("root://cmsxrootd.fnal.gov//store/user/jbonilla/BESTTag2Samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
 
       ## Make TruthLabels, only once (i.e. for key=BESvars)
       if globals()["truthLabels"+mySet] == []:

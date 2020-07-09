@@ -39,9 +39,11 @@ The pT of the samples have been decorrelated (shape-matched) in the formatConver
 
 ```bash
 python MakeStandardInputs.py -s all -sf flattened -st train,validation,test
-python TrainWithGenerators.py
+python johanTraining.py
 python plotConfusionMatrix.py
 ```
+
+Note that there is a couple of boolean flags, doBES and doImages, to specifically turn on part of that training.
 
 ## Training with only the Higgs Frame Images
 
