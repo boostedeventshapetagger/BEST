@@ -152,14 +152,12 @@ if __name__ == "__main__":
     parser.add_argument('-sa', '--stopAt',
                         type=int,
                         default=-1)
-    parser.add_argument('-p', '--plots',
-                        action='store_true')
     parser.add_argument('-eos','--eosDir',
                         dest='eosDir',
                         default="eosSamples/")
     parser.add_argument('-o','--outDir',
                         dest='outDir',
-                        default="/uscms/home/bonillaj/nobackup/h5samples/")
+                        default="h5samples/")
     parser.add_argument('-d','--debug',
                         action='store_true')
     args = parser.parse_args()
@@ -170,19 +168,14 @@ if __name__ == "__main__":
     if args.debug:
         print("Samples to process:", listOfSamples)
         print("Reading every nEvents:", stopAt)
-        print("Generate diagnostic plots:", args.plots)
 
     # Make directories you need
     if not os.path.isdir('plots'): os.mkdir('plots')
-    if not os.path.isdir('h5samples'): os.mkdir('h5samples')
+    if not os.path.isdir(args.outDir): os.mkdir(args.outDir)
 
     # Loop over samples and convert each separately
     for sampleType in listOfSamples:
         print("Processing", sampleType)
         convert(args.eosDir, args.outDir, sampleType, args.debug)
-        
-    ## Plot total pT distributions
-    #if args.plots:
-    #    callPlotter
     
     print("Done")

@@ -33,7 +33,7 @@ root.gROOT.SetBatch(True)
 listOfSamples = ["b","Higgs","QCD","Top","W","Z"]
 
 # Helper functions
-def splitFileSKL(inputPath, debug, userBatchSize):
+def splitFileSKL(inputPath, outDir, debug, userBatchSize):
     print("Starting clock")
     startTime = time.time()
     
@@ -47,15 +47,15 @@ def splitFileSKL(inputPath, debug, userBatchSize):
 
     # Create data frame and output files to handle copied information
     # Make h5f file to store the images and BES variables
-    h5fTrain = h5py.File(inputPath.split('.')[0]+"_train.h5","w")
-    h5fValidation = h5py.File(inputPath.split('.')[0]+"_validation.h5","w")
-    h5fTest = h5py.File(inputPath.split('.')[0]+"_test.h5","w")
+    outName = outDir+inputPath.split('.')[-2].split('/')[-1]
+    h5fTrain = h5py.File(outName+"_train.h5","w")
+    h5fValidation = h5py.File(outName+"_validation.h5","w")
+    h5fTest = h5py.File(outName+"_test.h5","w")
         
     besData = {}
     outputFiles = {}
     for setType in setTypes:
         besData[setType] = {}
-        #outputFiles[setType] = h5py.File(inputPath.split('.')[0]+"_"+setType+".h5","w")
 
     counter = 0
     while (counter < totalEvents):
@@ -100,7 +100,7 @@ def splitFileSKL(inputPath, debug, userBatchSize):
         counter += batchSize
     print("Splitting time:", time.time()-startTime)
 
-def splitFileSlow(inputPath, debug):
+def splitFileSlow(inputPath, outDir, debug):
     listOfFrameTypes = ["Higgs","Top","W","Z"]
     setTypes = ["train", "validation", "test"]
 
@@ -114,7 +114,7 @@ def splitFileSlow(inputPath, debug):
     outputFiles = {}
     for setType in setTypes:
         besData[setType] = {}
-        outputFiles[setType] = h5py.File(inputPath.split('.')[0]+"_"+setType+".h5","w")
+        outputFiles[setType] = h5py.File(outDir+inputPath.split('.')[-2].split('/')[-1]+"_"+setType+".h5","w")
 
     startTime = time.time()
 
@@ -187,7 +187,10 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
-                        default="h5samples/")
+                        default="root://cmsxrootd.fnal.gov//store/user/jbonilla/BESTTag2Samples/")
+    parser.add_argument('-o','--outDir',
+                        dest='outDir',
+                        default='~/nobackup/h5Dir/')
     parser.add_argument('-bs', '--batchSize',
                         type=int,
                         required=True)
@@ -198,14 +201,18 @@ if __name__ == "__main__":
     if args.debug:
         print("Samples to process: ", listOfSamples)
 
-    # Make directories you need
-    if not os.path.isdir(args.h5Dir): print(args.h5Dir, "does not exist")
+    # Check existance of directories you need
+    if not os.path.isdir(args.h5Dir): 
+        print(args.h5Dir, "does not exist")
+        quit()
+    if not os.path.isdir(args.outDir):
+        os.mkdir(args.outDir)
 
     for sampleType in listOfSamples:
         print("Processing", sampleType)
         inputPath = args.h5Dir+sampleType+"Sample_BESTinputs.h5"
-        #splitFileSlow(inputPath, args.debug)
-        splitFileSKL(inputPath, args.debug, args.batchSize)
+        #splitFileSlow(inputPath, args.outDir, args.debug)
+        splitFileSKL(inputPath, args.outDir, args.debug, args.batchSize)
         
         
     ## Plot total pT distributions

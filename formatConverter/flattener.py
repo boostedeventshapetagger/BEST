@@ -23,7 +23,7 @@ listOfSampleTypess = ["","train","validation","test"]
 ## Loop over all files and keep/reject events in batches. One uses train_test_split to do the heavy lifting.
 ## The random state in the function ensures the same mask across the keys. Since the probabilities are binned in pt,
 ## one must loop over all pt bins and evaluate keep/reject for each.
-def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex, userBatchSize):
+def flattenFile(keepProbs, h5Dir, outDir, listOfSamples, myType, bins, binSize, maxRange, flattenIndex, userBatchSize):
     print("Begin flattening for", myType)
     
     ## Loop over all samples and flatten each one by one. Probabilities have been previously calculated and passed in
@@ -34,7 +34,7 @@ def flattenFile(keepProbs, h5Dir, listOfSamples, myType, bins, binSize, maxRange
         else:
             filePath = filePath+"_"+myType+".h5"
         fIn = h5py.File(filePath, 'r')
-        fOut = h5py.File(filePath.split('.')[0]+"_flattened.h5","w")
+        fOut = h5py.File(outDir+filePath.split('.')[-2].split('/')[-1]+"_flattened.h5","w")
         besData = {}
         counter = 0
         totalEvents = fIn[fIn.keys()[0]].shape[0]
@@ -191,10 +191,10 @@ if __name__ == "__main__":
                         default=175)
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
-                        default="/uscms/home/bonillaj/nobackup/h5samples/")
+                        default="root://cmsxrootd.fnal.gov//store/user/jbonilla/BESTTag2Samples/")
     parser.add_argument('-o','--outDir',
                         dest='outDir',
-                        default="/uscms/home/bonillaj/nobackup/h5samples/")
+                        default="~/nobackup/h5samples/")
     parser.add_argument('-d','--debug',
                         action='store_true')
     args = parser.parse_args()
@@ -206,7 +206,6 @@ if __name__ == "__main__":
         print("Reading Every nEvents: ", args.batchSize)
 
     # Make directories you need
-    if not os.path.isdir('plots'): os.mkdir('plots')
     if not os.path.isdir(args.outDir): os.mkdir(args.outDir)
 
     binSize = (args.rangeHigh-args.rangeLow)/args.nBins
@@ -217,5 +216,5 @@ if __name__ == "__main__":
     for myType in listOfSampleTypes:
         print("My Type", myType)
         keepProbs = getProbabilities(args.h5Dir, listOfSamples, myType, bins, binSize, args.rangeHigh, args.flattenIndex)
-        flattenFile(keepProbs, args.h5Dir, listOfSamples, myType, bins, binSize, args.rangeHigh, args.flattenIndex, args.batchSize)
+        flattenFile(keepProbs, args.h5Dir, args.outDir, listOfSamples, myType, bins, binSize, args.rangeHigh, args.flattenIndex, args.batchSize)
 
