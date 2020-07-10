@@ -605,16 +605,16 @@ BESTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 if (daughtersOfJet.size() < 3) continue;
 
                 // Higgs Rest Frame Variables
-                calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "Higgs", 125.);
+                if (calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "Higgs", 125.) == false) continue;
 
                 // Top Rest Frame Variables
-                calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "Top", 172.5);
+                if (calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "Top", 172.5) == false) continue;
 
                 // W Rest Frame Variables
-                calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "W", 80.4);
+                if (calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "W", 80.4) == false) continue;
 
                 // Z Rest Frame Variables
-                calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "Z", 91.2);
+                if (calcBESvariables(treeVars, daughtersOfJet, boostedDaughters, ijet, restJets, imgVars, "Z", 91.2) == false) continue;
 
                 // store daughters, rest frame daughters, and rest frame jets
                 vector<string> frames = {"Higgs", "Top", "W", "Z"};

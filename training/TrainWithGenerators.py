@@ -187,7 +187,7 @@ combined = concatenate([HiggsImageModel.output, TopImageModel.output, WImageMode
 #combined = besModel.output
 combLayer = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(combined)
 combLayer = Dropout(0.20)(combLayer)
-combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combined)
+combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
 combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
 combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
 combLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(combLayer)

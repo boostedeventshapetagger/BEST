@@ -3,9 +3,13 @@
 The programs in this directory train the BEST.
 
 ## Overview
+There are a few different training strategies that live in this directory.
 
-``trainHHESTIA.py`` has can produce plots of the input variables and training results. These features can
-be turned on and off with the boolean variables at the beginning of the program. 
+``trainHHESTIA.py`` can produce plots of the input variables and training results. These features can be turned on and off with the boolean variables at the beginning of the program.
+
+``trainWithGenerators.py`` uses batch-generation for feeding in data.
+
+``johanTraining.py`` uses the shape-matching technique.
 
 ## Using the FermiLab GPUs
 
@@ -21,14 +25,25 @@ source activate mlenv0
 
 ## Training with Batch Generator pT flattening
 
-Our current method of training BEST uses a batch generator for pT flattening. This training is done in three steps on the
-LPC GPU.
+Our current method of training BEST uses a batch generator for pT flattening. This training is done in three steps on the LPC GPU.
 
 ```bash
 python MakeFlatWeights.py
-python MakeStandardInputs.py
+python MakeStandardInputs.py -s all -hd </path/to/hdSamples/>
 python TrainWithGenerators.py
 ```
+
+## Training with Shape-Matching
+
+The pT of the samples have been decorrelated (shape-matched) in the formatConverter step. Before the training, one must standardize the inputs for all file sets. Then one trains the network. Once done, one can evaluate the model on the test data. Thus the training and evaluation is done in three steps on the LPC GPU.
+
+```bash
+python MakeStandardInputs.py -s all -sf flattened -st train,validation,test
+python johanTraining.py
+python plotConfusionMatrix.py
+```
+
+Note that there is a couple of boolean flags, doBES and doImages, to specifically turn on part of that training.
 
 ## Training with only the Higgs Frame Images
 
