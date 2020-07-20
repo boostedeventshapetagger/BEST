@@ -21,7 +21,7 @@ setTypes = ["","train","validation","test"]
 #==================================================================================
 # Standardize BES Vars /////////////////////////////////////////////////////////////////
 #==================================================================================
-def standardizeBESTVars(fileDir = "../formatConverter/h5samples/", sampleTypes = ["QCD","Higgs","Top","W","Z","b"], setTypes = [""], suffix = ""):
+def standardizeBESTVars(fileDir, outDir, sampleTypes = ["QCD","Higgs","Top","W","Z","b"], setTypes = [""], suffix = ""):
    # put BES variables in data frames
    for mySet in setTypes:
       jetBESDF = {}
@@ -57,7 +57,7 @@ def standardizeBESTVars(fileDir = "../formatConverter/h5samples/", sampleTypes =
          #if infParticle == 'H' : infParticle = 'Higgs'
          #if infParticle == 'T' : infParticle = 'Top'
          #if infParticle == 'B' : infParticle = 'b'
-         outFilePath = fileDir+mySample+"Sample_BESTinputs"
+         outFilePath = outDir+mySample+"Sample_BESTinputs"
          if not mySet == "":
             outFilePath = outFilePath + "_" + mySet
          if not suffix == "":
@@ -95,7 +95,10 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
-                        default="/uscms/home/bonillaj/nobackup/h5samples/")
+                        default="~/nobackup/h5samples/")
+    parser.add_argument('-0','--outDir',
+                        dest='outDir',
+                        default="~/nobackup/h5samples/")
     parser.add_argument('-sf','--suffix',
                         dest='suffix',
                         default="")
@@ -110,7 +113,7 @@ if __name__ == "__main__":
     # Make directories you need
     if not os.path.isdir(args.h5Dir): print(args.h5Dir, "does not exist")
 
-    standardizeBESTVars(args.h5Dir, listOfSamples, setTypes, args.suffix)
+    standardizeBESTVars(args.h5Dir, args.outDir, listOfSamples, setTypes, args.suffix)
         
     ## Plot total pT distributions
     
