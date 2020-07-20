@@ -147,7 +147,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parse user command-line arguments to execute format conversion to prepare for training.')
     parser.add_argument('-s', '--samples',
                         dest='samples',
-                        help='<Required> Which (comma separated) samples to process. Examples: 1) --all; 2) W,Z,b',
+                        help='<Required> Which (comma separated) samples to process. Examples: 1) all; 2) W,Z,b',
                         required=True)
     parser.add_argument('-sa', '--stopAt',
                         type=int,
