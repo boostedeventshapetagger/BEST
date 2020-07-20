@@ -55,8 +55,9 @@ print(sess.run(h))
 # set options 
 savePDF = True
 savePNG = True
-doBES = False
+doBES = True
 doImages = True
+suffix = "_FullBEST"
 
 setTypes = ["Test"]
 sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
@@ -166,7 +167,7 @@ if doImages:
    numpy.random.shuffle(jetTopFrameTest)
 
 print("Load model")
-model_BEST = load_model("/uscms/home/bonillaj/johan_BEST/training/BEST_model_onlyImages.h5")
+model_BEST = load_model("/uscms/home/bonillaj/johan_BEST/training/BEST_model"+suffix+".h5")
 
 print("Make confusion matrix")
 if doBES and not doImages:
@@ -181,9 +182,9 @@ plt.figure(
 targetNames = ['W', 'Z', 'Higgs', 'Top', 'b', 'QCD']
 functs.plot_confusion_matrix(cm.T, targetNames, normalize=True)
 if savePDF == True:
-   if not os.path.isdir("plots_onlyImages"):
-      os.mkdir("plots_onlyImages")
-   plt.savefig('plots_onlyImages/ConfusionMatrix_onlyImages.pdf')
+   if not os.path.isdir("plots"+suffix):
+      os.mkdir("plots"+suffix)
+   plt.savefig('plots'+suffix+'/ConfusionMatrix'+suffix+'.pdf')
 plt.close()
 
 
