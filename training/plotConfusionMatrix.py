@@ -167,7 +167,7 @@ if doImages:
    numpy.random.shuffle(jetTopFrameTest)
 
 print("Load model")
-model_BEST = load_model("/uscms/home/bonillaj/johan_BEST/training/BEST_model"+suffix+".h5")
+model_BEST = load_model("BEST_model"+suffix+".h5")
 
 print("Make confusion matrix")
 if doBES and not doImages:
