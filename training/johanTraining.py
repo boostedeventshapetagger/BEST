@@ -53,6 +53,7 @@ print(sess.run(h))
 # Do BES and/or images
 doBES = True
 doImages = True
+suffix = '_FullBEST'
 
 setTypes = ["Train","Validation"]
 sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
@@ -91,7 +92,7 @@ makeTruthLabelsOnce = True
 for mySet in setTypes:
    for index, mySample in enumerate(sampleTypes):
       print("Opening "+mySample+mySet+" file")
-      myF = h5py.File("root://cmsxrootd.fnal.gov//store/user/jbonilla/BESTTag2Samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
+      myF = h5py.File("/uscms/home/bonillaj/nobackup/h5samples/"+mySample+"Sample_BESTinputs_"+mySet.lower()+"_flattened_standardized.h5","r")
 
       ## Make TruthLabels, only once (i.e. for key=BESvars)
       if globals()["truthLabels"+mySet] == []:
@@ -352,7 +353,7 @@ early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, 
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
-model_checkpoint = ModelCheckpoint('BEST_model_onlyImages.h5', monitor='val_loss', 
+model_checkpoint = ModelCheckpoint('BEST_model'+suffix+'.h5', monitor='val_loss', 
                                    verbose=0, save_best_only=True, 
                                    save_weights_only=False, mode='auto', 
                                    period=1)
@@ -370,7 +371,7 @@ print("Trained the neural network!")
 # performance plots
 loss = [history.history['loss'], history.history['val_loss'] ]
 acc = [history.history['acc'], history.history['val_acc'] ]
-tools.plotPerformance(loss, acc, "onlyImages")
+tools.plotPerformance(loss, acc, suffix)
 print("plotted BEST training Performance")
 
 print("Program was a great success!!!")

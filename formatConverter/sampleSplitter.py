@@ -187,7 +187,7 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
-                        default="root://cmsxrootd.fnal.gov//store/user/jbonilla/BESTTag2Samples/")
+                        default="~/nobackup/h5Dir/")
     parser.add_argument('-o','--outDir',
                         dest='outDir',
                         default='~/nobackup/h5Dir/')
