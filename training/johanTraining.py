@@ -53,7 +53,11 @@ print(sess.run(h))
 # Do BES and/or images
 doBES = True
 doImages = True
-suffix = '_FullBEST'
+doEnsembler = True
+if doEnsembler:
+   doBES = True
+   doImages = True
+suffix = '_Ensembler'
 
 setTypes = ["Train","Validation"]
 sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
@@ -313,7 +317,10 @@ if doBES:
    print (besModel.output)
 
 # Add BES variables to the network
-if doBES and not doImages:
+if doEnsembler:
+   combined1 = besModel.output
+   combined2 = concatenate([WImageModel.output, ZImageModel.output, HiggsImageModel.output, TopImageModel.output])
+elif doBES and not doImages:
    combined = besModel.output
 elif doBES and doImages:
    combined = concatenate([WImageModel.output, ZImageModel.output, HiggsImageModel.output, TopImageModel.output, besModel.output])
@@ -324,42 +331,87 @@ elif not doBES and doImages:
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besModel.output])
 #combined = concatenate([HiggsImageModel.output, TopImageModel.output, besInputs])
 
-#combined = besModel.output
-combLayer = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(combined)
-combLayer = Dropout(0.20)(combLayer)# try 0.35
-combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
-#Another dropout of 0.35
-combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
-combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
-combLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
-combLayer = Dropout(0.10)(combLayer)
-outputBEST = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(combLayer)
+if doEnsembler:
+   combLayer1 = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(combined1)
+   combLayer1 = Dropout(0.20)(combLayer1)# try 0.35
+   combLayer1 = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer1)
+   #Another dropout of 0.35
+   combLayer1 = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer1)
+   combLayer1 = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer1)
+   combLayer1 = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(combLayer1)
+   combLayer1 = Dropout(0.10)(combLayer1)
+   outputBEST1 = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(combLayer1)
+   
+   combLayer2 = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(combined2)
+   combLayer2 = Dropout(0.20)(combLayer2)# try 0.35
+   combLayer2 = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer2)
+   #Another dropout of 0.35
+   combLayer2 = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer2)
+   combLayer2 = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer2)
+   combLayer2 = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(combLayer2)
+   combLayer2 = Dropout(0.10)(combLayer2)
+   outputBEST2 = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(combLayer2)
+else:
+   #combined = besModel.output
+   combLayer = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(combined)
+   combLayer = Dropout(0.20)(combLayer)# try 0.35
+   combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
+   #Another dropout of 0.35
+   combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
+   combLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
+   combLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(combLayer)
+   combLayer = Dropout(0.10)(combLayer)
+   outputBEST = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(combLayer)
 
 # compile the model
-if doBES and not doImages:
+if doEnsembler:
+   model_BEST1 = Model(inputs = [besModel.input], outputs = outputBEST1)
+   model_BEST2 = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input], outputs = outputBEST2)
+elif doBES and not doImages:
    model_BEST = Model(inputs = [besModel.input], outputs = outputBEST)
 elif doBES and doImages:
    model_BEST = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input, besModel.input], outputs = outputBEST)
 elif not doBES and doImages:
    model_BEST = Model(inputs = [WImageModel.input, ZImageModel.input, HiggsImageModel.input, TopImageModel.input], outputs = outputBEST)
 
-model_BEST.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+if doEnsembler:
+   model_BEST1.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+   model_BEST2.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+else:
+   model_BEST.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # print the model summary
-print(model_BEST.summary() )
+if doEnsembler:
+   print(model_BEST1.summary() )
+   print(model_BEST2.summary() )
+else:
+   print(model_BEST.summary() )
 
 # early stopping
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto', restore_best_weights=True)
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
-model_checkpoint = ModelCheckpoint('BEST_model'+suffix+'.h5', monitor='val_loss', 
+if doEnsembler:
+   model_checkpoint1 = ModelCheckpoint('BEST_model1'+suffix+'.h5', monitor='val_loss', 
+                                   verbose=0, save_best_only=True, 
+                                   save_weights_only=False, mode='auto', 
+                                   period=1)
+   model_checkpoint2 = ModelCheckpoint('BEST_model2'+suffix+'.h5', monitor='val_loss', 
+                                   verbose=0, save_best_only=True, 
+                                   save_weights_only=False, mode='auto', 
+                                   period=1)
+else:
+   model_checkpoint = ModelCheckpoint('BEST_model'+suffix+'.h5', monitor='val_loss', 
                                    verbose=0, save_best_only=True, 
                                    save_weights_only=False, mode='auto', 
                                    period=1)
 
 # train the neural network
-if doBES and not doImages:
+if doEnsembler:
+   history1 = model_BEST1.fit([jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint1], validation_data = [[jetBESvarsValidation[:]], truthLabelsValidation[:]])
+   history2 = model_BEST2.fit([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:]], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint2], validation_data = [[jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:]], truthLabelsValidation[:]])
+elif doBES and not doImages:
    history = model_BEST.fit([jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetBESvarsValidation[:]], truthLabelsValidation[:]])
 elif doBES and doImages:
    history = model_BEST.fit([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:], jetBESvarsTrain[:] ], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpoint], validation_data = [[jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:], jetBESvarsValidation[:]], truthLabelsValidation[:]])
@@ -369,9 +421,54 @@ elif not doBES and doImages:
 print("Trained the neural network!")
 
 # performance plots
-loss = [history.history['loss'], history.history['val_loss'] ]
-acc = [history.history['acc'], history.history['val_acc'] ]
-tools.plotPerformance(loss, acc, suffix)
+if doEnsembler:
+   loss1 = [history1.history['loss'], history1.history['val_loss'] ]
+   acc1 = [history1.history['acc'], history1.history['val_acc'] ]
+   tools.plotPerformance(loss1, acc1, suffix)
+   loss2 = [history2.history['loss'], history2.history['val_loss'] ]
+   acc2 = [history2.history['acc'], history2.history['val_acc'] ]
+   tools.plotPerformance(loss2, acc2, suffix)
+else:
+   loss = [history.history['loss'], history.history['val_loss'] ]
+   acc = [history.history['acc'], history.history['val_acc'] ]
+   tools.plotPerformance(loss, acc, suffix)
 print("plotted BEST training Performance")
+
+if doEnsembler:
+   ## PredictTrain1 should give an array of (NEvents, classification), BESvars
+   ## PredictTrain2 should give an array of (NEvents, classification), Images
+   ## Same for validation
+   predictTrain1 = model_BEST1.predict([jetBESvarsTrain[:]])
+   predictTrain2 = model_BEST2.predict([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:]])
+   predictValidation1 = model_BEST1.predict([jetBESvarsValidation[:]])
+   predictValidation2 = model_BEST2.predict([jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:]])
+
+   ## Need to make new network combining output of other networks here
+   EnsembleShapeHolder = 2 #One for images and one for BES
+   ensembleInputs = Input( shape=(EnsembleShapeHolder, ) )
+   ensembleModel = Model(inputs = ensembleInputs, outputs = ensembleInputs)
+   
+   ensemble = ensembleModel.output
+   ensembleLayer = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(ensemble)
+   ensembleLayer = Dropout(0.20)(combLayer)# try 0.35
+   ensembleLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(ensembleLayer)
+   #Another dropout of 0.35
+   ensembleLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(ensembleLayer)
+   ensembleLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(ensembleLayer)
+   ensembleLayer = Dense(144, kernel_initializer="glorot_normal", activation="relu" )(ensembleLayer)
+   ensembleLayer = Dropout(0.10)(ensembleLayer)
+   outputEnsemble = Dense(6, kernel_initializer="glorot_normal", activation="softmax")(ensembleLayer)
+
+   model_Ensemble = Model(inputs = [ensembleModel.input], outputs = outputEnsemble)
+   model_Ensemble.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+   print(model_Ensemble.summary() )
+   model_checkpointEnsemble = ModelCheckpoint('BEST_modelEnsemble'+suffix+'.h5', monitor='val_loss', 
+                                   verbose=0, save_best_only=True, 
+                                   save_weights_only=False, mode='auto', 
+                                   period=1)
+   historyEnsemble = model_BEST1.fit([predictTrain1[:], predictTrain2[:]], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpointEnsemble], validation_data = [[predictValidation1[:], predictValidation2[:], truthLabelsValidation[:]]])
+   lossEnsemble = [historyEnsemble.history['loss'], historyEnsemble.history['val_loss'] ]
+   accEnsemble = [historyEnsemble.history['acc'], historyEnsemble.history['val_acc'] ]
+   tools.plotPerformance(lossEnsemble, accEnsemble, suffix+"Combined")
 
 print("Program was a great success!!!")
