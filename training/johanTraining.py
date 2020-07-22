@@ -27,6 +27,7 @@ from sklearn.externals import joblib
 from os import environ
 environ["KERAS_BACKEND"] = "tensorflow" #must set backend before importing keras
 from keras.models import Sequential, Model
+from keras.models import load_model
 from keras.optimizers import SGD
 from keras.layers import Input, Activation, Dense, SeparableConv2D, Conv2D, MaxPool2D, BatchNormalization, Dropout, Flatten, MaxoutDense
 from keras.layers import GRU, LSTM, ConvLSTM2D, Reshape
@@ -191,6 +192,8 @@ if doImages:
 
 
 print("Stored data and truth information")
+
+'''
 
 #==================================================================================
 # Train the Neural Network ////////////////////////////////////////////////////////
@@ -387,8 +390,12 @@ if doEnsembler:
 else:
    print(model_BEST.summary() )
 
+'''
+
 # early stopping
 early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=10, verbose=0, mode='auto', restore_best_weights=True)
+
+'''
 
 # model checkpoint callback
 # this saves the model architecture + parameters into dense_model.h5
@@ -424,15 +431,21 @@ print("Trained the neural network!")
 if doEnsembler:
    loss1 = [history1.history['loss'], history1.history['val_loss'] ]
    acc1 = [history1.history['acc'], history1.history['val_acc'] ]
-   tools.plotPerformance(loss1, acc1, suffix)
+   tools.plotPerformance(loss1, acc1, suffix+"1")
    loss2 = [history2.history['loss'], history2.history['val_loss'] ]
    acc2 = [history2.history['acc'], history2.history['val_acc'] ]
-   tools.plotPerformance(loss2, acc2, suffix)
+   tools.plotPerformance(loss2, acc2, suffix+"2")
 else:
    loss = [history.history['loss'], history.history['val_loss'] ]
    acc = [history.history['acc'], history.history['val_acc'] ]
    tools.plotPerformance(loss, acc, suffix)
 print("plotted BEST training Performance")
+
+'''
+
+print("Loading models")
+model_BEST1 = load_model("BEST_model1"+suffix+".h5")
+model_BEST2 = load_model("BEST_model2"+suffix+".h5")
 
 if doEnsembler:
    ## PredictTrain1 should give an array of (NEvents, classification), BESvars
@@ -442,15 +455,19 @@ if doEnsembler:
    predictTrain2 = model_BEST2.predict([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:]])
    predictValidation1 = model_BEST1.predict([jetBESvarsValidation[:]])
    predictValidation2 = model_BEST2.predict([jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:]])
+   print("PredictTrain1",predictTrain1.shape)
+   print("PredictTrain2",predictTrain2.shape)
+   print("PredictValidation1",predictValidation1.shape)
+   print("PredictTrain2",predictValidation2.shape)
 
    ## Need to make new network combining output of other networks here
-   EnsembleShapeHolder = 2 #One for images and one for BES
-   ensembleInputs = Input( shape=(EnsembleShapeHolder, ) )
+   EnsembleShapeHolder = (6,6) #Six category weights for images and six for BES
+   ensembleInputs = Input( shape=EnsembleShapeHolder )
    ensembleModel = Model(inputs = ensembleInputs, outputs = ensembleInputs)
    
    ensemble = ensembleModel.output
    ensembleLayer = Dense(512, kernel_initializer="glorot_normal", activation="relu" )(ensemble)
-   ensembleLayer = Dropout(0.20)(combLayer)# try 0.35
+   ensembleLayer = Dropout(0.20)(ensembleLayer)# try 0.35
    ensembleLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(ensembleLayer)
    #Another dropout of 0.35
    ensembleLayer = Dense(256, kernel_initializer="glorot_normal", activation="relu" )(ensembleLayer)
@@ -466,7 +483,7 @@ if doEnsembler:
                                    verbose=0, save_best_only=True, 
                                    save_weights_only=False, mode='auto', 
                                    period=1)
-   historyEnsemble = model_BEST1.fit([predictTrain1[:], predictTrain2[:]], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpointEnsemble], validation_data = [[predictValidation1[:], predictValidation2[:], truthLabelsValidation[:]]])
+   historyEnsemble = model_BEST1.fit([numpy.concatenate(numpy.array(predictTrain1[:]), numpy.array(predictTrain2[:]))], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpointEnsemble], validation_data = [[numpy.concatenate(numpy.array(predictValidation1[:]), numpy.array(predictValidation2[:]))], truthLabelsValidation[:]])
    lossEnsemble = [historyEnsemble.history['loss'], historyEnsemble.history['val_loss'] ]
    accEnsemble = [historyEnsemble.history['acc'], historyEnsemble.history['val_acc'] ]
    tools.plotPerformance(lossEnsemble, accEnsemble, suffix+"Combined")
