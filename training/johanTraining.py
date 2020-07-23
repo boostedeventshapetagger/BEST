@@ -455,14 +455,14 @@ if doEnsembler:
    predictTrain2 = model_BEST2.predict([jetWFrameTrain[:], jetZFrameTrain[:], jetHiggsFrameTrain[:], jetTopFrameTrain[:]])
    predictValidation1 = model_BEST1.predict([jetBESvarsValidation[:]])
    predictValidation2 = model_BEST2.predict([jetWFrameValidation[:], jetZFrameValidation[:], jetHiggsFrameValidation[:], jetTopFrameValidation[:]])
-   print("PredictTrain1",predictTrain1.shape)
-   print("PredictTrain2",predictTrain2.shape)
-   print("PredictValidation1",predictValidation1.shape)
-   print("PredictTrain2",predictValidation2.shape)
+   print("PredictTrain1",predictTrain1.shape, type(predictTrain1))
+   print("PredictTrain2",predictTrain2.shape, type(predictTrain2))
+   print("PredictValidation1",predictValidation1.shape, type(predictValidation1))
+   print("PredictTrain2",predictValidation2.shape, type(predictValidation2))
 
    ## Need to make new network combining output of other networks here
-   EnsembleShapeHolder = (6,6) #Six category weights for images and six for BES
-   ensembleInputs = Input( shape=EnsembleShapeHolder )
+   EnsembleShapeHolder = 12 #Six category weights for images and six for BES
+   ensembleInputs = Input( shape=(EnsembleShapeHolder,) )
    ensembleModel = Model(inputs = ensembleInputs, outputs = ensembleInputs)
    
    ensemble = ensembleModel.output
@@ -483,7 +483,14 @@ if doEnsembler:
                                    verbose=0, save_best_only=True, 
                                    save_weights_only=False, mode='auto', 
                                    period=1)
-   historyEnsemble = model_BEST1.fit([numpy.concatenate(numpy.array(predictTrain1[:]), numpy.array(predictTrain2[:]))], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpointEnsemble], validation_data = [[numpy.concatenate(numpy.array(predictValidation1[:]), numpy.array(predictValidation2[:]))], truthLabelsValidation[:]])
+   
+   concatTrain = numpy.concatenate((predictTrain1[:], predictTrain2[:]),axis=1)
+   concatValidation = numpy.concatenate((predictValidation1[:], predictValidation2[:]),axis=1)
+   print("concatTrain", concatTrain.shape, type(concatTrain))
+   print("concatValidation", concatValidation.shape, type(concatValidation))
+   print("truthLabelsTrain", truthLabelsTrain.shape, type(truthLabelsTrain))
+   print("truthLabelsValidation", truthLabelsValidation.shape, type(truthLabelsValidation))
+   historyEnsemble = model_Ensemble.fit([concatTrain], truthLabelsTrain[:], batch_size=BatchSize, epochs=200, callbacks=[early_stopping, model_checkpointEnsemble], validation_data = [[concatValidation], truthLabelsValidation[:]])
    lossEnsemble = [historyEnsemble.history['loss'], historyEnsemble.history['val_loss'] ]
    accEnsemble = [historyEnsemble.history['acc'], historyEnsemble.history['val_acc'] ]
    tools.plotPerformance(lossEnsemble, accEnsemble, suffix+"Combined")

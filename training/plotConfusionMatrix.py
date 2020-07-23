@@ -57,7 +57,11 @@ savePDF = True
 savePNG = True
 doBES = True
 doImages = True
-suffix = "_FullBEST"
+doEnsembler = True
+if doEnsembler:
+   doBES = True
+   doImages = True
+suffix = '_Ensembler'
 
 setTypes = ["Test"]
 sampleTypes = ["W","Z","Higgs","Top","b","QCD"]
@@ -167,25 +171,36 @@ if doImages:
    numpy.random.shuffle(jetTopFrameTest)
 
 print("Load model")
-model_BEST = load_model("BEST_model"+suffix+".h5")
-
-print("Make confusion matrix")
-if doBES and not doImages:
-   cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
-elif doBES and doImages:
-   cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:], jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
-elif not doBES and doImages:
-   cm = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:]]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+cm = {}
+if doEnsembler:
+   model_BEST1 = load_model("BEST_model1"+suffix+".h5")
+   model_BEST2 = load_model("BEST_model2"+suffix+".h5")
+   predictTest1 = model_BEST1.predict([jetBESvarsTest[:]])
+   predictTest2 = model_BEST2.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:]])
+   model_BEST = load_model("BEST_modelEnsemble"+suffix+".h5")
+   print("Make confusion matrix")
+   cm["Ensemble1"] = metrics.confusion_matrix(numpy.argmax(model_BEST1.predict([jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+   cm["Ensemble2"] = metrics.confusion_matrix(numpy.argmax(model_BEST2.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:]]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+   cm["EnsembleCombined"] = metrics.confusion_matrix(numpy.argmax(model_BEST.predict([numpy.concatenate((predictTest1[:], predictTest2[:]), axis=1)]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) )
+else:
+   model_BEST = load_model("BEST_model"+suffix+".h5")
+   if doBES and not doImages:
+      cm.append(metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) ))
+   elif doBES and doImages:
+      cm.append(metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:], jetBESvarsTest[:] ]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) ))
+   elif not doBES and doImages:
+      cm.append(metrics.confusion_matrix(numpy.argmax(model_BEST.predict([jetWFrameTest[:], jetZFrameTest[:], jetHiggsFrameTest[:], jetTopFrameTest[:]]), axis=1), numpy.argmax(truthLabelsTest[:], axis=1) ))
 print("Plot confusion matrix")
 plt.figure(
 )
 targetNames = ['W', 'Z', 'Higgs', 'Top', 'b', 'QCD']
-functs.plot_confusion_matrix(cm.T, targetNames, normalize=True)
-if savePDF == True:
-   if not os.path.isdir("plots"+suffix):
-      os.mkdir("plots"+suffix)
-   plt.savefig('plots'+suffix+'/ConfusionMatrix'+suffix+'.pdf')
-plt.close()
+for myKey in cm.keys():
+   functs.plot_confusion_matrix(cm[myKey].T, targetNames, normalize=True)
+   if savePDF == True:
+      if not os.path.isdir("plots"+suffix):
+         os.mkdir("plots"+suffix)
+      plt.savefig('plots'+suffix+'/ConfusionMatrix'+myKey+suffix+'.pdf')
+   plt.close()
 
 
 #loss = [history.history['loss'], history.history['val_loss'] ]
