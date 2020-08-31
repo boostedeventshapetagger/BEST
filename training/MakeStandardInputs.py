@@ -96,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('-hd','--h5Dir',
                         dest='h5Dir',
                         default="~/nobackup/h5samples/")
-    parser.add_argument('-0','--outDir',
+    parser.add_argument('-o','--outDir',
                         dest='outDir',
                         default="~/nobackup/h5samples/")
     parser.add_argument('-sf','--suffix',
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                         default="")
     parser.add_argument('-st','--setType',
                         dest='setType',
-                        help='<Required> Which (comma separated) sets to process. Examples: 1) --all; 2) train,validation,test',
+                        help='<Required> Which (comma separated) sets to process. Examples: 1) all; 2) train,validation,test',
                         required=True)
     args = parser.parse_args()
     if not args.samples == "all": listOfSamples = args.samples.split(',')
